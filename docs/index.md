@@ -58,6 +58,6 @@ As this tutorial is mainly for educational purposes, this KMS inside a secure en
 
 Ready to practice? Let’s dive in and install everything we need to get started!
 
-[PUT BUTTON WITH LINK TO “NEXT” TUTORIAL]
+
 
 
