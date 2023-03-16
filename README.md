@@ -1,1 +1,1 @@
-# confidentialcomputing_explained
+# Confidential computing explained series
