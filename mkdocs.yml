@@ -1,5 +1,5 @@
 # Website Info
-site_name: CC explained
+site_name: Confidential computing explained
 site_url: https://www.mithrilsecurity.io/
 site_author: Mithril Security
 site_description: >-
@@ -100,6 +100,5 @@ markdown_extensions:
 # Documentation tree
 nav:
   - Introduction: "index.md"
-  - Getting started: 
-    - Installation: "docs/getting-started/installation.md"
+  - Installation: "docs/installation.md"
 

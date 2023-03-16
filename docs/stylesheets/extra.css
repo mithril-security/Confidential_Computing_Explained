@@ -29,13 +29,12 @@
 
 	/* rules to style all level 0 navigation titles */
 	nav[data-md-level="0"]>ul>li>.md-nav__link {
-		font-weight: bold;
-		text-transform: uppercase;
+		font-weight: lighter;
 	}
 
 	/* rules to style level 2 collapsible sections titles */
 	nav[data-md-level="1"]>ul>li.md-nav__item--nested>label.md-nav__link {
-		font-weight: bold;
+		font-weight: lighter;
 	}
 }
 
