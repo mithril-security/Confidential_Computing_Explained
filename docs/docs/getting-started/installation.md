@@ -1,235 +1,67 @@
-# Installation
-____________________________________________
+Installing OpenEnclave SDK (simulation and hardware   modes)
+Context
+To build an sgx application for our minimal KMS, we will be using OpenEnclave SDK which builds enclave applications using C and C++. 
+This installation guide focuses on OpenEnclave SDK running on simulation and hardware mode using Azure.
 
-Get started and **install BastionLab Client** and **BastionLab Server**.
+The easiest way to get started would be to provision a virtual machine on Azure.
+Provision a DCsv3 with an Ubuntu 20.04 OS image.
 
-## Pre-requisites
-___________________________________________
 
-### Technical requirements
+Prerequisites:
+On Hardware installation, the processor must support SGX 2, with Flexible Launch Control. 
+simulation mode: A linux ubuntu >18.04 distribution.
+azure hardware mode: Access to a DCvs3 azure confidential VM. 
+Linux distribution > 18.04 and linux headers > 5.11
+	
+ 
 
-To install **BastionLab Client and BastionLab Server**, ensure the following are already installed in your system:
+SGX Drivers
+If you are running on your own server or machine, you can check out if it supports SGX here : 
+https://www.intel.com/content/www/us/en/support/articles/000028173/processors.html 
+or check support directly by following the instructions here : 
+https://github.com/openenclave/openenclave/blob/master/docs/GettingStartedDocs/SGXSupportLevel.md
+If you’re using a linux kernel above version 5.11, SGX drivers should already be installed and if your processor supports Intel SGX you can verify that it is installed and available by using a simple `ls`:
 
-- Python3.7 or greater *(get the latest version of Python at [https://www.python.org/downloads/](https://www.python.org/downloads/) or with your operating system’s package manager)*
-- [Python Pip](https://pypi.org/project/pip/) (PyPi), the package manager
+~/$ ls /dev/sgx*
+/dev/sgx_enclave  /dev/sgx_provision 
 
-To install **BastionLab Server**, you'll also need:
+/dev/sgx:
+enclave  provision
 
-- [Docker](https://www.docker.com/) 
+If you have a kernel version below 5.11, you should upgrade to a newer version, or you can download the drivers' binaries directly from the official intel repository https://download.01.org/intel-sgx/latest/linux-latest/distro/.
 
-*Here's the [Docker official tutorial](https://docker-curriculum.com/) to set it up on your computer.*
+Installing the OpenEnclave SDK 
+OpenEnclave's installation is fairly straightforward.
+You can follow the instructions herer 
+https://github.com/openenclave/openenclave/blob/master/docs/GettingStartedDocs/install_oe_sdk-Ubuntu_18.04.md
+Adding APT sources
+Configuring the Intel and microsoft APT repositories:
 
-## Installing BastionLab Client
-_____________________________________________
+echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/intel-sgx.list
+wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add -
 
-### From PyPI
-
-```bash
-pip install bastionlab
-```
-
-### From source
-
-First, you'll need to clone BastionLab repository:
-```bash
-git clone https://github.com/mithril-security/bastionlab.git
-```
-Then install the client library:
-```bash
-cd ./bastionlab/client
-make dev-install
-```
-
-## Installing BastionLab Server
-______________________________________________
-
-### From PyPI
-
-For **testing purposes only**, BastionLab server can be installed using our pip package.
-
-!!! warning
-
-	This package is meant to quickly setup a running instance of the server and is particularly useful in colab notebooks. It does not provide any mean to configure the server which makes certain features impossible to use (like [authentication](../../../docs/tutorials/authentication/)).
-
-	**For production, please use the Docker image or install the server from source.**
-    
-```bash
-pip install bastionlab-server
-```
-
-Once installed, the server can be launched using the following script:
-
-```py
-import bastionlab_server
-srv = bastionlab_server.start()
-```
-
-And stoped this way:
-
-```py
-bastionlab_server.stop(srv)
-```
-
-### Using the official Docker image
-
-```bash
-docker run -p 50056:50056 -d mithrilsecuritysas/bastionlab:latest
-```
-
-### Configuring the Docker image
-If you want to use a custom configuration file, you can do so with the following code block:
-```
-docker create -p 50056:50056 --name bastionlab-srv mithrilsecuritysas/bastionlab:latest
-docker cp <your_updated_config>.toml bastionlab-srv:/app/bin
-docker start bastionlab-srv
-```
-
-To serve as a reference, here's the default config.toml:
-```
---8<-- "server/tools/config.toml"
-```
-
-### By locally building the Docker image
-
-Clone the repository and build the image using the Dockerfile:
-```bash
-git clone https://github.com/mithril-security/bastionlab.git
-cd ./bastionlab/server
-docker build -t bastionlab:0.1.0 -t bastionlab:latest .
-```
-Then run a container based on the image:
-```bash
-docker run -p 50056:50056 -d bastionlab
-```
-
-### Building the Docker image with GPU access
-
-#### Prerequisites
-Visit the ![NVIDIA drivers page](https://www.nvidia.com/Download/index.aspx) for downloading and installing the appropriate drivers.
-Reboot your system and make sure your GPU is running and accessible.
-
-#### Install nvidia-container-runtime
-For Debian-like systems or [others](https://nvidia.github.io/nvidia-container-runtime/).
-
-Add the *nvidia-container-runtime* repository to your list of repositories:
-```bash
-# Get the GPG key
-curl -s -L https://nvidia.github.io/nvidia-container-runtime/gpgkey | \
-  sudo apt-key add -
-# Get the distribution
-distribution=$(. /etc/os-release && echo $ID$VERSION_ID)
-# Add repository to list
-curl -s -L https://nvidia.github.io/nvidia-container-runtime/$distribution/nvidia-container-runtime.list | \
-  sudo tee /etc/apt/sources.list.d/nvidia-container-runtime.list
+echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main" | sudo tee /etc/apt/sources.list.d/llvm-toolchain-focal-11.list
+wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+echo "deb [arch=amd64] https://packages.microsoft.com/ubuntu/20.04/prod focal main" | sudo tee /etc/apt/sources.list.d/msprod.list
+wget -qO - https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
 
 sudo apt update
-```
-Install *nvidia-container-runtime* and restart docker service:
-```bash
-sudo apt install nvidia-container-runtime
-sudo systemctl restart docker 
-```
-#### Build and run the image
-Clone the repository and build the image using the Dockerfile:
-```bash
-git clone https://github.com/mithril-security/bastionlab.git
-cd ./bastionlab/server
-docker build -t bastionlab:0.3.7-gpu -f Dockerfile.gpu.sev .
-```
-Then run a container based on the image, exposing the GPUs for use and with NVIDIA recommended flags:
-```bash
-docker run --gpus all --ipc=host --ulimit memlock=-1 --ulimit stack=67108864 -p 50056:50056 bastionlab:0.3.7-gpu
-```
-### From source
 
-#### Automated build
-Before using the automated build, make sure to run it in a RHEL, Debian or Arch based linux distro. The script will detect on the run on which distro it is running.
-
-The **build.sh** script must be ran inside the *server's directory*, it will check and install all the necessary dependencies to build the server, if needed, and then it will start building it.
-
-```bash
-git clone https://github.com/mithril-security/bastionlab.git
-cd bastionlab/server/
-./build.sh
-```
-##### Environmental variables
-- `LIBTORCH`
-  - If the LIBTORCH envar is already set, the script will use this path to build the server.
-- `CUDA`
-  - If the CUDA envar is already set, the script will use this path to build the server.
-- `INSTALL_RUST_OPT`
-  - It is to set the options for **rustup** installation (To choose the default host, **toolchain**, profile, ...).
-  ```bash
-  export INSTALL_RUST_OPT='--profile minimal --default-toolchain nightly'
-  ./build.sh
-  ```
-- `BASTIONLAB_BUILD_AS_ROOT`
-  - If it is necessary to build the project as the **root user**, you need to set this variable before running the script.
-  - If the variable is not set when running as root, the **dependencies will be installed** but the project will not be built.
-  ```bash
-  ./build # Running this as root will install the dependencies
-  ```
-  ```bash
-  export BASTIONLAB_BUILD_AS_ROOT=1
-  ./build.sh # Running this as root and with the flag set will install AND build the server
-  ```
-- `BASTIONLAB_CPP11`
-  - If it is necessary to build the project using C++11, you need to set this variable before running the script. 
-  - It will install and setup C++11 before building. 
-  ```bash
-  export BASTIONLAB_CPP11=1
-  ./build.sh
-  ```
-
-###### Flow chart
-```mermaid
-%%{ init: { 'flowchart': { 'curve': 'stepBefore' } } }%%
-flowchart LR
-    subgraph PR[Privileges at run]
-        direction LR
-        z(Start) --> a
-        a{Sudo privileges?} ==Yes==> b[Run as superuser]
-        a -.No.-> c[Run as user] -.-> d{Dependencies\nmissing?}
-        d -.Yes.-> b
-    end
-    subgraph MF[Main flow]
-        direction LR
-        A[Install\ndependencies] ===> D{Ran script as user\nor flag\nBUILD_AS_ROOT is set?}
-        D -.Yes.-> B
-        B[Build server]
-        D ==No==> C(End)
-        B ---> C
-    end
-        b ==> A
-        d -.No.-> B
-    PR === MF
-```
+Installing the DCAP for the remote attestation (Hardware mode with Azure)
+DCAP (for DataCenterAttestationPrimitives)  provides intel SGX with an attestation model leveraging ECDSA encryption. DCAP is necessary for the remote attestation. However, it doesn’t work in simulation mode. We will restrict using the remote attestation only for our Azure example. 
+The DCAP drivers are normally already installed on the azure machine. 
+PS: If you are working on a bare-metal machine or your own that has SGX in it, the DCAP installation is different. please refer to the official documentation and the OpenEnclave DCAP installation. 	
 
 
-#### Manual build
 
-First make sure that the following build dependencies (Debian-like systems) are installed on your machine:
-```bash
-sudo apt-get update && apt-get -y install build-essential libssl-dev pkg-config curl unzip
-```
+So when is the PSW needed ? 
+- The PSW is the code that implements the following:
+- Loading of an enclave memory image.
+- Initialization of an enclave image.
+- Execute ECALL's into the enclave image and any OCALL's resulting from those ECALL's.
+- Implement handling for enclave exception conditions.
+- Implement requests for platform services.
+- Mediate provisioning of EPID private keys.
+- Support transmission and receipt of remote attestation quotes.
 
-Then, clone our repository:
-```bash
-git clone https://github.com/mithril-security/bastionlab.git
-```
-Download and unzip libtorch (Pytorch's C++ backend) from [Pytorch's website](https://pytorch.org/) (you can chose the right build according to your cuda version):
-```bash
-cd ./bastionlab
-curl -o libtorch.zip $(. ./.env.vars && echo "${TORCH_CXX11_URL}")
-unzip libtorch.zip
-```
-Libtorch binaries are now available under the libtorch folder. You can now turn to building the server crates:
-```bash
-cd server
-make build
-```
 
-To run the server, use:
-```bash
-make run
-```
