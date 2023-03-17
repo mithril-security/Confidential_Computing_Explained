@@ -34,8 +34,10 @@ This project and everyone participating in it is governed by the [Mithril Securi
 
 ## What should I know before I get started?
 
-### I only have a question
-If you have a question to ask or you want to open a discussion about BlindAI or confidential computing in general, we have a dedicated [Discord Community](https://discord.gg/TxEHagpWd4) in which all these kind of exchanges are more than welcome!
+### I have a question or I want to discuss a topic
+If you have a question to ask or you want to open a discussion about confidential computing in depth, we have a dedicated [Discord Community](https://discord.gg/TxEHagpWd4) in which all these kind of exchanges are more than welcome!
+
+You can also follow the guidelines below to open an issue directly on the project. 
 
 ### Confidential Computing Series
 
