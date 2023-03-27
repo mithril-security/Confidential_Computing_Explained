@@ -1,6 +1,7 @@
 # Introduction to Confidential Computing
 
-You can visit the learning website here : https://cc-explained.mithrilsecurity.io/en/latest/.  
+*You can visit the learning website here : https://cc-explained.mithrilsecurity.io/en/latest/.*
+
 <font size=”5”><span style="font-weight: 200">
 A hands-on guide for beginners
 </font></span>
