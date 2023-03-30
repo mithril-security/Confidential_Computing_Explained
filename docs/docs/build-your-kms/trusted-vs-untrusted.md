@@ -1,15 +1,12 @@
 # (2) Trusted and untrusted concepts in confidential computing
 __________________________________________________
 
-***# With this one I did the same as in the preivous one but I also started to modify certain paragraph so you can see what it could look like or how we can bring some concept in a more beginner-friendly manner. If I write anything wrong of course, do correct/mention it haha***
 
 When we run a program, we usually do so in a certain environment. It could be Linux machine, a virtual machine or a Docker container. Securing that environnement is as critical as securing our code.
 
 Easier said than done though! All the programs that run aside of ours - the different standard libraries, the different softwares and even OS's kernel - can extend the attack surface. They could interact with our program and tamper with it.
 
 Cue to one of the major principles in computer security: 
-
-***# The following {== ==} syntax highlights a block of text on MKdocs materials***
 
 {==
 
@@ -41,14 +38,7 @@ The web app's TCB level is defined in this order: first, we need to trust **the 
 
 ***# Why put only an explanation on the second one? [YASS] added other infos***
 
-***# To we need the following list? Will it be in the image? [YASS] Yes, so I guess we can remove it***
 
-<!-- App's overall TCB:
-
-- Application code
-- Operating System
-- Hypervisor
-- Hardware -->
 
 Each one of these layers presents a consequent surface attack, and by adding it to the TCB, we must keep in mind that the security of each layer must be tested. But it can be easier said than done as each layer contains several vulnerable entry points that we are not aware of, which makes it harder to make secure. 
 
@@ -57,8 +47,6 @@ Each one of these layers presents a consequent surface attack, and by adding it 
 ![Current tcb level](../assets/tcb_level_current.png)
 
 ## How to reduce the TCB?
-
-***# I rewrote that part. Might be stuff to not keep ^^ [YASS] Changed some things***
 
 We want the surface of attack to be as restricted as possible, so our main goal is *always* to reduce the TCB of our infrastructure as much as possible. 
 
@@ -89,12 +77,12 @@ But how can we be sure that code is doing as expected if it's running in an envi
 
 We'll go over the details of this complex mechanism in the next chapters. For now, all you need to know is that it verifies that the application is **run in a protected zone** and that its **integrity *(Protecting data & code against tampering)* and confidentiality *(Protecting data & code against leak or extraction)*** are maintained.  
 
-![Current tcb level](../assets/tcb_level_sgx.png)
+![SGX tcb level](../assets/tcb_level_sgx.png)
+
 Even the BIOS and the firmware aren't trusted in Intel SGX! Other current TEEs don't go as far - because it makes it a bit more difficult to set up the enclave. But as a result, Intel SGX's TCB is really minimal since only parts of the hardware are trusted.
 
 ### Process isolation and memory encryption
 
-***# mostly did little edits, but I did rewrite tiny parts of this***
 
 To satisfy this minimal TCB, Intel SGX relies on **process isolation**, to render **interaction** between the **host and the enclave impossible**, unless under certain conditions. (For attestation purposes, as we will see in the next chapter).
 

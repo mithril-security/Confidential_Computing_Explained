@@ -1,8 +1,6 @@
 # (1) Installing OpenEnclave SDK (simulation and hardware modes)
 ______________________________________________
 
-***# Like I said in our conversation: the way I'm doing this is I'm doing a full review of your text with comments, but I'm not really touching up anything yet. We can have a call and discuss this when you've gone through the comments 🙂 
-Also do not act on the comments (just answer the questions), they are here for you to read and know about. They're also for us to discuss about stuff. But most of them I'll implement myself so you don't loose time over editing which is fast for me to do and an unfamiliar excercise for you ^^***
 
 To build an sgx application for our minimal KMS, we will be using OpenEnclave SDK which builds enclave applications using C and C++. 
 This installation guide focuses on OpenEnclave SDK running in simulation and hardware mode using Azure.
@@ -189,7 +187,6 @@ Installing the packages for the security features (Hardware mode with Azure DCsV
 
 ***# Confused here again with who this step is for. [YASS] we're still on the hardware mode section***
 
-***# "Data Center Attestation Primitives (DCAP)". Always the explanation of a abbreviation first, abbreviation second.***
 
 ***Data Center Attestation Primitives*** (DCAP) is a set of libraries and functions that provides Intel SGX attestation support for data centers and cloud providers with an attestation model leveraging **Elliptic Curve Digital Signature Algorithm (ECDSA) encryption**. 
 DCAP is necessary for the remote attestation and sealing. Theses features are the ones added as security features by Intel SGX to : 
@@ -204,9 +201,9 @@ The DCAP drivers are normally already installed on the Azure machine.
 *PS: If you are working on your own SGX-ready machine and not the DCvs3 Azure VM, the DCAP installation process may be different. please refer to the official documentation and the OpenEnclave DCAP installation.* 	
 
 ***# [LAURA COMMENT: Is the PS meaning: If you are not using the recommended the DCvs3 Azure VM, the installation process will be different? If so, maybe we can say:
-PS: If you are working on your own SGX-ready machine and not the DCvs3 Azure VM, the DCAP installation process may be different. please refer to the official documentation and the OpenEnclave DCAP installation. 	
-]***
-***# At this point we still don't know what an attestation is really and I think we should clarify that at some point (with a box for example or something, saying we'll go over it more in details later... But we need more info on attestations. We can't just namedrop them.) [YASS] I've changed to paragraph to make an quick intro without revealing too much and by saying that it will be seen after***
+PS: If you are working on your own SGX-ready machine and not the DCvs3 Azure VM, the DCAP installation process may be different. please refer to the official documentation and the OpenEnclave DCAP installation.]***
+***# At this point we still don't know what an attestation is really and I think we should clarify that at some point (with a box for example or something, saying we'll go over it more in details later... But we need more info on attestations. We can't just namedrop them.) 
+[YASS] I've changed to paragraph to make an quick intro without revealing too much and by saying that it will be seen after***
 
 If you're working on an *ubuntu 20.04 with a Linux kernel version of 5.15-azure or above*, you should already have the required drivers, otherwise, some driver DCAP installation might be required. 
 
