@@ -103,7 +103,7 @@ source /opt/openenclave/share/openenclave/openenclavec
 To make our development journey easier, we are going to add it directly to the `.bashrc` to make it persistent in every new shell:
 
 ```bash
-source /opt/openenclave/share/openenclave/openenclavec >> ~/.bashrc
+ echo "source /opt/openenclave/share/openenclave/openenclaverc" >> ~/.bashrc
 ```
 ## How to set-up Hardware mode
 
@@ -253,7 +253,7 @@ source /opt/openenclave/share/openenclave/openenclavec
 To make our development journey easier, we are going to add it directly to the `.bashrc` to make it persistent in every new shell:
 
 ```bash
-source /opt/openenclave/share/openenclave/openenclavec >> ~/.bashrc
+ echo "source /opt/openenclave/share/openenclave/openenclaverc" >> ~/.bashrc
 ```
 
 
