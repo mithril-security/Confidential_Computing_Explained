@@ -34,7 +34,7 @@ enclave {
 ```
 
 
+## KMS interfaces
 
-
-## Example functions 
-### An ECALL with  a Hello world example
+## KMS calls  
+### 
