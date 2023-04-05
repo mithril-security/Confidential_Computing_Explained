@@ -27,9 +27,9 @@ ______________________
 
 ## What does a KMS do? 
 
-It is common for companies to store sensitive data and need to protect it. For a running web application for instance, a particular attention must be given to passwords, credit card details or other data when storing them. Usually, these issues are resolved by encryption. But the key used must also be stored securely. Which means that it must be encrypted again. 
+It is common for companies to store sensitive data and need to protect it. For a running web application for instance, a particular attention must be given to passwords, credit card details or other data when storing them. Usually, these issues are resolved by encryption. But the key used must also be stored securely. Which means that the key must be encrypted by another key that protects it. however, we will always have a master key that we must securely store and it cannot be done simply by encrypting it. 
 
-This where a KMS comes in handy. One of its features is to manage keys: it will import them, manage the users and the roles (etc.) in a secure and protected way! That is because KMS can perform multiple cryptographic operations. They can store private keys and certificates, perform encryption and key rotation... 
+This where a KMS comes in handy. One of its features is to manage keys: it will import them, manage the users and the roles (etc.) in a secure and protected way completely isolated from the services that uses it! That is because KMS can perform multiple cryptographic operations. It can store private keys and certificates, perform encryption and key rotation... 
 
 ______________________________________
 

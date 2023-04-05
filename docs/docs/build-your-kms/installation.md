@@ -33,8 +33,8 @@ ______________________________
 
 	The easiest way to get started is to create a virtual machine (**VM**) on Azure, because it has all those requirements. The VM that will be used for hardware mode in this tutorial is a **DCsv3 VM** with an **Ubuntu 20.04** OS image. 
 
-	***# [OPHELIE] So two options: 1/ Put the link to Azure setup in our BlindAI documentation (this might not hurt because we send people to our own content). 2/ Put it here in a '??? "How to get a free Azure trial"' MkDocs collapsible bloc : https://squidfunk.github.io/mkdocs-material/reference/admonitions/#collapsible-blocks***
-
+    ??? "How to get a DCsv3 VM with a free Azure trial"
+        You can check how to deploy a DCsv3 VM from Azure by following the steps till the ssh connection at [https://blindai.mithrilsecurity.io/en/latest/docs/tutorials/core/installation/#deployment-on-azure-dcsv3](https://blindai.mithrilsecurity.io/en/latest/docs/tutorials/core/installation/#deployment-on-azure-dcsv3). 
 
 ## Set-up your mode
 ______________
@@ -98,15 +98,7 @@ ______________
 	<h3>SGX drivers</h3>
 	_________________________________
 
-	***# [OPHELIE] CHECKER cette partie là pour que ça soit plus clair 
-	https://blindai.mithrilsecurity.io/en/latest/docs/tutorials/core/installation/#on-premise-deployment ^^***
-
-	If you’re using a Linux kernel **above** version **5.11**, SGX drivers should already be installed. You can check if your computer supports **SGX2**: 
-
-	```bash
-	./test-sgx | grep "sgx 2 supported"
-	# If your output is: `sgx 2 supported: 1`, you have SGX2
-	```
+	If you’re using a Linux kernel **above** version **5.11**, SGX drivers should already be installed.
 
 	If your processor supports Intel SGX2, you can verify that the drivers are installed and available by using the `ls` command:
 

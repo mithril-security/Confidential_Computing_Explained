@@ -35,15 +35,8 @@ The web app's TCB level is defined in this order:
 
 Each one of these layers presents a consequent surface attack, and by adding it to the TCB, we must keep in mind that the security of each layer must be tested. But it can be easier said than done as each layer contains several vulnerable entry points that we are not aware of, which makes it harder to secure. 
 
-![Current tcb level](../assets/tcb_level_current.png)
+![Current tcb level](../assets/tcb_level_current_1.png)
 
-***# [OPHELIE] Could you change the red to color-blind-palette-red': '#D81B60' for colorblindness purposes? Or do something a bit more solid to play with contrast?***
-
-***Also for the text, maybe more something like this?***
-
-***"The highlight in red shows the current TCB level for most of the usual application that we run."***
-
-***"Note that the application is not necessarily isolated from the rest of the applications in this scenario - something confidential computing ensures."***
 
 _______________________________
 
@@ -81,9 +74,8 @@ This is where the **remote attestation** comes in! It allows the enclave to atte
 
 We'll go over the details of this complex mechanism in the next chapters. For now, all you need to know is that it verifies that the application is **run in a protected zone** and that its **integrity** (protecting data and code against tampering) and **confidentiality**(protecting data and code against leak or extraction) are maintained.  
 
-![SGX tcb level](../assets/tcb_level_sgx.png)
+![SGX tcb level](../assets/tcb_level_sgx_1.png)
 
-***# [OPHELIE] same but with color-blind-palette-green': '#004D40'***
 
 Even the **BIOS** and the **firmware aren't trusted** in **Intel SGX**! Other current TEEs don't go as far, because it makes it a bit more difficult to set up the enclave. But as a result, Intel SGX's TCB is really minimal since only parts of the hardware are trusted.
 
