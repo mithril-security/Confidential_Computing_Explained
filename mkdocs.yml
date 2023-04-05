@@ -1,13 +1,13 @@
 # Website Info
-site_name: Confidential computing explained
+site_name: Confidential Computing Explained
 site_url: https://www.mithrilsecurity.io/
 site_author: Mithril Security
 site_description: >-
-  Tutorials around confidential computing. 
+  Tutorials to become a confidential computing expert. 
 
 # Repository
-repo_name: mithril-security/Confidential_Computing_Explained
-repo_url: https://github.com/mithril-security/Confidential_Computing_Explained
+#repo_name: mithril-security/Confidential_Computing_Explained
+#repo_url: https://github.com/mithril-security/Confidential_Computing_Explained
 
 # Configuration
 theme:
@@ -18,8 +18,7 @@ theme:
     - search.highlight
     - content.tabs.link
     - navigation.sections
-    - navigation.indexes
-    # - navigation.expand
+    - toc.integrate
   logo: assets/logo.png
   favicon: assets/logo.png
   palette:
@@ -47,11 +46,6 @@ theme:
 #Plugins
 plugins:
   - search
-  # - mkdocs-jupyter
-  # - gen-files:
-  #   scripts:
-  #     - docs/gen_ref_pages.py
-  # - mkdocstrings
 
 # Customization
 extra:
@@ -71,7 +65,6 @@ extra_css:
 
 extra_javascript:
   - "https://code.jquery.com/jquery-3.3.1.min.js"
-  - javascripts/navbar.js
 
 # Extensions
 markdown_extensions:
@@ -96,9 +89,19 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.critic
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji 
+      emoji_generator: !!python/name:materialx.emoji.to_svg
 
 # Documentation tree
 nav:
-  - Introduction: "index.md"
-  - Installation: "docs/installation.md"
-
+  - 👋 Welcome:
+    - Overview: "index.md"
+    - The security challenges: "docs/introduction/security-privacy-challenges.md"
+    - What is Confidential Computing?: "docs/introduction/confidential-hardware-garantees.md"
+  
+  - 🛠️ Build your KMS:
+    - Introduction: "docs/build-your-kms/intro-to-kms.md"
+    - Installation: "docs/build-your-kms/installation.md"
+    - Trusted VS Untrusted: "docs/build-your-kms/trusted-vs-untrusted.md"
+ #   - Implementing Calls: "docs/build-your-kms/trusted-vs-untrusted-impl.md"
