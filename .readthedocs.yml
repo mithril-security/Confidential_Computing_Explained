@@ -17,8 +17,8 @@ mkdocs:
   fail_on_warning: true
 
 requirements_file: docs/requirements.txt
-# python:
-#   install:
-#     - requirements: docs/requirements.txt
-#     - method: pip
-#       path: docs/
+python:
+  install:
+    - requirements: docs/requirements.txt
+    - method: pip
+      path: .
