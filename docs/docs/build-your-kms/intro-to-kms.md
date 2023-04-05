@@ -14,9 +14,9 @@ ______________________
 
 ## What's a KMS?
 
-A **KMS** is a piece of software that performs **cryptographic operations** (such as encryption and managing private keys) and is usually **embedded inside a secure hardware** component or hardware security modules (also refered to as HSMs). 
+A **KMS** is a piece of software that performs **cryptographic operations** (such as encryption and managing private keys) and is usually **embedded inside a secure hardware** component or **hardware security** modules (also refered to as HSMs). 
 
-Because TEEs are a secure environment, we can implement a working KMS inside an enclave. A remote client can benefit from having a remote key manager, without having to trust their keys directly.
+Because Trusted Execution Environements, or TEEs, are a secure environment, we can implement a working KMS inside an enclave. A remote client can benefit from having a remote key manager, without having to trust their keys directly.
 
 !!! warning "<font size="2">Don’t roll your own crypto!</font>"
 
@@ -27,7 +27,7 @@ ______________________
 
 ## What does a KMS do? 
 
-It is common for companies to store sensitive data that they must protect to keep their services available and protected. For a running web application for instance, a particular attention must be given to passwords, credit card details or other data when storing them. Usually, these issues are resolved by encryption. But the key used must also be stored securely. Which means that it must be encrypt again. And then, we have another key that we must protect and store and so on. 
+It is common for companies to store sensitive data and need to protect it. For a running web application for instance, a particular attention must be given to passwords, credit card details or other data when storing them. Usually, these issues are resolved by encryption. But the key used must also be stored securely. Which means that it must be encrypted again. 
 
 This where a KMS comes in handy. One of its features is to manage keys: it will import them, manage the users and the roles (etc.) in a secure and protected way! That is because KMS can perform multiple cryptographic operations. They can store private keys and certificates, perform encryption and key rotation... 
 

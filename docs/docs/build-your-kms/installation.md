@@ -23,8 +23,6 @@ ______________________________
 		
 		The simulation mode works in the same way as the hardware mode. The difference is that the **Intel instructions are simulated in software** rather than using hardware. This is why many security features are not available - since they are inseparable from the hardware. 
 
-	***# [OPHELIE] I added "This is why many security features are not available - since they are inseparable from the hardware." in the previous paragraph. Is that correct? I'm just trying to remind people that it's not safe to use in production, but without us repeating ourselves again. Might need to do it some other way if this is wrong.***
-
 	When building our KMS project we will tell you at the beginning of each section if it is possible to follow along in simulation mode! 
 
 
@@ -100,6 +98,9 @@ ______________
 	<h3>SGX drivers</h3>
 	_________________________________
 
+	***# [OPHELIE] CHECKER cette partie là pour que ça soit plus clair 
+	https://blindai.mithrilsecurity.io/en/latest/docs/tutorials/core/installation/#on-premise-deployment ^^***
+
 	If you’re using a Linux kernel **above** version **5.11**, SGX drivers should already be installed. You can check if your computer supports **SGX2**: 
 
 	```bash
@@ -119,9 +120,6 @@ ______________
 
 	If you find the drivers named "enclave" and "provision" (or "sgx_enclave" and "sgx_provision") in `/dev/`, you are good to go!
 
-	!!! info
-		+ If the command fails with an `in-kernel support` error, this means the drivers are already installed in `/dev/sgx/`. 
-
 	If you have a kernel version **below 5.11**, you should upgrade to a newer version, or you can download the drivers' binaries directly from the official intel repository by following the steps below: 
 
 	```bash
@@ -130,6 +128,11 @@ ______________
 	chmod +x sgx_linux_x64_driver_1.41.bin
 	./sgx_linux_x64_driver_1.41.bin
 	```  
+
+	!!! info
+
+		+ If the command fails with an `in-kernel support` error, this means the drivers are already installed in `/dev/sgx/`. 
+
 
 	<h3>OpenEnclave SDK & Intel dependencies</h3>
 	_________________________________________
@@ -166,7 +169,7 @@ ______________
 	Packages for the security features
 	</span></font>
 
-	**Data Center Attestation Primitives** (**DCAP**) is a set of libraries and functions that will allow us to **verify remotely that a program is running** in an SGX enclave and **store the enclave** securely. These two major features are called attestation and sealing, but we'll go over them more in details later in the course. 
+	**Data Center Attestation Primitives** (**DCAP**) is a set of libraries and functions that will allow us to **verify remotely that a program is running** in an SGX enclave and **store the enclave** securely. These two major features are called **attestation** and **sealing**, but we'll go over them more in details later in the course. 
 
 	DCAP drivers are normally already installed on the Azure machine, if you are working on an **ubuntu 20.04 with a Linux kernel version of 5.15-azure or above**. You can check which version you're using with the following command.
 
