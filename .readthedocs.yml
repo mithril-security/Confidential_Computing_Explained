@@ -16,7 +16,6 @@ mkdocs:
   configuration: mkdocs.yml
   fail_on_warning: true
 
-requirements_file: docs/requirements.txt
 python:
   install:
     - requirements: docs/requirements.txt
