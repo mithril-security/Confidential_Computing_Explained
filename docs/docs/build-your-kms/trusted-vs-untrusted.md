@@ -1,26 +1,19 @@
-# Trusted and untrusted concepts in confidential computing
+# Trusted VS Untrusted
 __________________________________________________
 
+When we run a program, we usually do so in a certain environment. It could be Linux machine, a virtual machine or a Docker container. Securing that environnement is **as critical** as securing our code.
 
-When we run a program, we usually do so in a certain environment. It could be Linux machine, a virtual machine or a Docker container. Securing that environnement is as critical as securing our code.
+Easier said than done though! All the programs that run aside of ours, like the different standard libraries, the different softwares and even OS's kernel, can extend the attack surface. They could interact with our program and tamper with it.
 
-Easier said than done though! All the programs that run aside of ours - the different standard libraries, the different softwares and even OS's kernel - can extend the attack surface. They could interact with our program and tamper with it.
-
-Cue to one of the major principles in computer security: 
-
-{==
-
-**We must always try to reduce the attack surface and consequently, keep the computing base minimal.**
-
-==}
+Cue to one of the major principles in computer security: we must always try to **reduce the attack surface** and consequently, keep the **computing base minimal**.
 
 By trying to achieve this principle, the concept around confidential computing is to define an environment which is **highly isolated**, but can, **in certain conditions**, communicate with the outside world. 
 
-***# [YASS] It's the other way around, the tcb level is (defines) the minimal environment*** 
+***# [YASS] It's the other way around, the tcb level is (defines) the minimal environment [OPHELIE] Tu peux réécrire les parties qui vont pas ? Et dans le paragraphe suivant : "at a certain program level" de quel niveau tu parles ? C'est pas très précis ^^*** 
 
-The trusted computing base (TCB) at a certain program level will be this minimal environment. Remember this acronym because we'll be using it a lot! 
+The trusted computing base or **TCB** at a certain program level will be this minimal environment. Remember this acronym because we'll be using it a lot! 
 
-Actually, here's a bit of theory on the topic before we get coding.
+But before we get coding, let's cover some theory.
  
 ## What is a Trusted Computing Base (TCB)? 
 
