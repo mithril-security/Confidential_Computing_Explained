@@ -1,7 +1,7 @@
 # 🔒 What is Confidential Computing?
 ___________________________________________________
 
-As you might have guessed from the preivous chapter, there is an answer to those security issues and it is **Confidential Computing**! 
+As you might have guessed from the previous chapter, there is an answer to those security issues and it is **Confidential Computing**! 
 
 Our tutorial’s star technology can analyze sensitive data **without ever exposing it in clear**. It does so by using **secure enclaves**.
 

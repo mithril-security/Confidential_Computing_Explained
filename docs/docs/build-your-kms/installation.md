@@ -1,6 +1,5 @@
-# (1) Installing OpenEnclave SDK (simulation and hardware modes)
+# Installing OpenEnclave SDK (simulation and hardware modes)
 ______________________________________________
-
 
 To build an sgx application for our minimal KMS, we will be using OpenEnclave SDK which builds enclave applications using C and C++. 
 This installation guide focuses on OpenEnclave SDK running in simulation and hardware mode using Azure.

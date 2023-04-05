@@ -1,4 +1,4 @@
-# (2) Trusted and untrusted concepts in confidential computing
+# Trusted and untrusted concepts in confidential computing
 __________________________________________________
 
 
