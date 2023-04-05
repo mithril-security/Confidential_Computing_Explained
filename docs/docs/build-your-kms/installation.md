@@ -5,256 +5,225 @@ To build an SGX application for our minimal KMS, we will be using **OpenEnclave 
 
 We will walk you through how to set up everything you need to use it in both **simulation mode** and **hardware mode**. 
 
-- Simulation mode works on **any machine** but **does not have all the key security features**. It can be useful for running **tests** but is not intended for production. 
+- Simulation mode works on **any machine** but **does not have all the key security features**. For example, you won't be able to communicate remotely and secure the enclave. Simulation mode can be useful for running **tests** but is not intended for production. 
 - Hardware mode has **all the Intel SGX security features** but **requires specific Intel processors**. If you want to complete this tutorial in hardware mode, we **recommend** using a **DCvs3 Azure VM**.
 
 ## Pre-requisites
 ______________________________
 
-### Simulation mode
+=== "Simulation mode"
 
-- We recommend a **Linux Ubuntu** distribution **18.04** or **20.04 LTS**.
+	- We highly recommend a **Linux Ubuntu** distribution **18.04** or **20.04 LTS**.
 
+	For the simulation set-up mode, you can technically use any development environment, but we'll be using the Linux distribution in this course. If you use a different setup, the packages  might **not work** and the installation could be **different**. It might also work less well with OpenEnclaveSDK.
 
-### Hardware mode
+	!!! warning
 
-***#[OPHELIE] One important thing to keep in mind: we can tell people to do this on Azure, no choice. We can explain why we made that choice, but if we have a free trial possibility... This is not like a classic product tutorial. this is a course =) The same way a teacher tells you to buy books, well... we tell people to try this on Azure***
+		Keep in mind that **key security features** behind confidential computing are **not available in simulation** mode!
+		
+		The simulation mode works in the same way as the hardware mode. The difference is that the **Intel instructions are simulated in software** rather than using hardware. This is why many security features are not available - since they are inseparable from the hardware. 
 
-- The processor must support **SGX 2**, with **Flexible Launch Control**.
-- **Linux** distribution greater than or equal to **18.04** and **Linux headers version** greater than or equal to **5.11**.
+	***# [OPHELIE] I added "This is why many security features are not available - since they are inseparable from the hardware." in the previous paragraph. Is that correct? I'm just trying to remind people that it's not safe to use in production, but without us repeating ourselves again. Might need to do it some other way if this is wrong.***
 
-The easiest way to get started is to create a virtual machine (**VM**) on Azure, because it has all those requirements. The VM that will be used for hardware mode in this tutorial is a **DCsv3 VM** with an **Ubuntu 20.04** OS image. 
+	When building our KMS project we will tell you at the beginning of each section if it is possible to follow along in simulation mode! 
 
-***# LAURA COMMENT: We have a guide on how to get a free trial with Azure and set up an Azure DCSV3 VM- we could always include this in this guide if you want? It could be a separate page that we link to, maybe in a `resources` folder or something? I have a copy of this file locally I can share with you] [YASS] You might be right, I'll wait for ophelie insight on this cause I am lazy and don't want to do it (maybe it's too much detail for lecturer? If he can't set up the VM on azure it's not a good begining for what will come after)***
-***[OPHELIE] So I agree with Laura. It's not about not being able to set up the VM on azure. It's about giving instructions all here, on how to do things. And we already have this anyways so it doesn't hurt - but I'm just wondering if actually in this particular case a link wouldn't make more sense because it sends on OUR documentation in BlindAI and I guess that also wouldn't hurt...***
 
+=== "Hardware mode"
 
-## How to set-up Simulation mode
-______________________________________
+	- The processor must support **SGX 2**, with **Flexible Launch Control**.
+	- **Linux** distribution greater than or equal to **18.04** and **Linux headers version** greater than or equal to **5.11**.
 
-For the simulation set-up mode, you can use any development environment, but for this course, we'll be using **a Linux OS and 20.04 Ubuntu distribution** so we highly recommend you use it to make it easier for you. 
+	The easiest way to get started is to create a virtual machine (**VM**) on Azure, because it has all those requirements. The VM that will be used for hardware mode in this tutorial is a **DCsv3 VM** with an **Ubuntu 20.04** OS image. 
 
-The simulation mode works in the same way as the hardware mode. The difference is that the Intel instructions are simulated in software rather than using hardware.
+	***# [OPHELIE] So two options: 1/ Put the link to Azure setup in our BlindAI documentation (this might not hurt because we send people to our own content). 2/ Put it here in a '??? "How to get a free Azure trial"' MkDocs collapsible bloc : https://squidfunk.github.io/mkdocs-material/reference/admonitions/#collapsible-blocks***
 
-!!! warning
 
-	- Keep in mind that **key security features** behind confidential computing are **not available in simulation** mode!
+## Set-up your mode
+______________
 
-	- The **packages** used in this guide **might not work for other OS or Linux distributions**. The installation might also be different.
+=== "Simulation mode"
 
-When building our KMS project we will note at the beginning of each section if it is possible to follow along in simulation mode!
+	<h3>Adding APT sources</h3>
+	____________________________
 
-### Installing OpenEnclave SDK and its dependencies
+	To install the OpenEnclaveSDK packages and its dependencies, we'll first need to add the necessary repos to the **package manager APT**.
 
-<font size="5"><span style="font-weight: 200">
-Adding APT sources
-</font></span>
+	Use the following commands to configure the Intel and Microsoft Azure APT repositories for downloading and installing Intel SGX and OpenEnclave:
 
+	```bash
+	echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/intel-sgx.list
+	wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add -
 
-We first need to add the necessary repos to the package manager APT to be able to install the necessary packages.
-To configure the Intel and microsoft Azure APT repositories for downloading & installing Intel SGX and OpenEnclave add the following commands :
+	echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main" | sudo tee /etc/apt/sources.list.d/llvm-toolchain-focal-11.list
+	wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+	echo "deb [arch=amd64] https://packages.microsoft.com/ubuntu/20.04/prod focal main" | sudo tee /etc/apt/sources.list.d/msprod.list
+	wget -qO - https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
 
-```bash
-echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/intel-sgx.list
-wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add -
+	sudo apt update
+	```
 
-echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main" | sudo tee /etc/apt/sources.list.d/llvm-toolchain-focal-11.list
-wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-echo "deb [arch=amd64] https://packages.microsoft.com/ubuntu/20.04/prod focal main" | sudo tee /etc/apt/sources.list.d/msprod.list
-wget -qO - https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+	<h3>Intel & OpenEnclave packages</h3>
+	_____________________________________
 
-sudo apt update
-```
+	Then, we'll install all the packages needed to simulate a running enclave with OpenEnclave. 
 
-<font size="5"><span style="font-weight: 200">
-Installing all the Intel and OpenEnclave packages 
-</font></span>
-#### 
+	```bash
+	sudo apt -y install clang-11 libssl-dev gdb libsgx-enclave-common libsgx-quote-ex libprotobuf17 libsgx-dcap-ql libsgx-dcap-ql-dev az-dcap-client open-enclave
+	```
 
-```bash
-sudo apt -y install clang-11 libssl-dev gdb libsgx-enclave-common libsgx-quote-ex libprotobuf17 libsgx-dcap-ql libsgx-dcap-ql-dev az-dcap-client open-enclave
-```
+	You should now see that OpenEnclave was installed in the folder `/opt/openenclave/`. 
 
-Here, we've installed all the packages needed to simulate a running enclave with OpenEnclave. 
-Note that we won't be able to test the important security features (for communicating remotely and securing the enclave) that a real enclave can deliver.
+	```bash
+	$ ls /opt/openenclave
+	bin include lib share
+	```
 
-***# [LAURA COMMENT: Maybe it is too much, but we keep saying that with simulation we don't have the **all important security features**, but this makes me curious as to what they are- if you are able to concisely add any more details on this, it could be nice] [YASS] don't know if it's better***
+	!!! abstract "Want to know more?"
 
-You should now see that OpenEnclave was installed in the folder `/opt/openenclave/` (for more details, follow this [link](https://github.com/openenclave/openenclave/blob/master/docs/GettingStartedDocs/Linux_using_oe_sdk.md)):
-***# [YASS] is the link above interesting to keep?***
+		To start exploring the OpenEnclaveSDK once you have it installed, you can go read this [README](https://github.com/openenclave/openenclave/blob/master/docs/GettingStartedDocs/Linux_using_oe_sdk.md)!
 
-```bash
-$ ls /opt/openenclave
-bin include lib share
- ```
+	To run OpenEnclave tools directly from our shell without having path issues, we are going to add the following command:
 
-To work with our current shell, we are going to add the following command to be able to run OpenEnclave tools directly from our shell without having path issues:
-```bash
-source /opt/openenclave/share/openenclave/openenclavec
-```
-To make our development journey easier, we are going to add it directly to the `.bashrc` to make it persistent in every new shell:
+	```bash
+	source /opt/openenclave/share/openenclave/openenclavec
+	```
 
-```bash
- echo "source /opt/openenclave/share/openenclave/openenclaverc" >> ~/.bashrc
-```
-## How to set-up Hardware mode
+	Then we'll make our development journey easier, by adding it directly to the `.bashrc`. It will make this change persistent in every new shell:
 
-***# It get a bit unclear here. What step is for whom and what do you need to do when you're in simulation mode? Or which steps are the same for both situations? This might be the wrong title or the wrong place for it, but it was to show you an example of something we could do to clarify [YASS] I've separated the hardware from simulation, that way we see the difference more clearly***
-______________________________________
+	```bash
+	echo "source /opt/openenclave/share/openenclave/openenclaverc" >> ~/.bashrc
+	```
 
 
-### SGX drivers
+=== "Hardware mode"
 
-***# The following two paragraphs should go =) This is a course, so we are not sending people away. They should have everything they need here. Copy pasting + aknowledging we went to Intel or another person GitHub is fine. People should never have to click on anything but the "NEXT" button at the bottom of the page ^^.***
+	<h3>SGX drivers</h3>
+	_________________________________
 
-***It's different from a product tutorial. In a product tutorial, the person comes with their own needs. We need to have all the ressources for them to be able to meet them, but we don't know what they are so it's more important that we give them an answer that drives them somewhere else than not giving it to them. With teaching, you're defining what road the student will take and they should do what you tell them, not wander around ^^. It's cool because you have more power and it's easier to keep people in your clutches than with product demo. [YASS] Done***
+	If you’re using a Linux kernel **above** version **5.11**, SGX drivers should already be installed. You can check if your computer supports **SGX2**: 
 
+	```bash
+	./test-sgx | grep "sgx 2 supported"
+	# If your output is: `sgx 2 supported: 1`, you have SGX2
+	```
 
-If you’re using a Linux kernel above version 5.11, SGX drivers should already be installed. And if your processor supports Intel SGX you can verify that it is installed and available by using the `ls` command:
+	If your processor supports Intel SGX2, you can verify that the drivers are installed and available by using the `ls` command:
 
-```bash
-~/$ ls /dev/sgx*
-/dev/sgx_enclave  /dev/sgx_provision 
+	```bash
+	~/$ ls /dev/sgx*
+	/dev/sgx_enclave  /dev/sgx_provision 
 
-/dev/sgx:
-enclave  provision
-``` 
+	/dev/sgx:
+	enclave  provision
+	``` 
 
-***# LAURA COMMENT: 1. Maybe clarify that only one of these ls commands needs to work- not both. # It's only one command 2. What about if people have SGX1 instead of SGX2? Maybe the method of checking this used in the installation guide is interesting? You could copy and paste it it's useful
-https://blindai.mithrilsecurity.io/en/latest/docs/tutorials/core/installation/#on-premise-deployment # [YASS] Yep it might be a good idea, but the Azure DCsV3 are all SGX2, and the remote attestation that we are gonna do doesn't use SGX1. It'll be better to restrict to only SGX2 / Added in Post-Scriptum***
+	If you find the drivers named "enclave" and "provision" (or "sgx_enclave" and "sgx_provision") in `/dev/`, you are good to go!
 
-If you have a kernel version below 5.11, you should upgrade to a newer version, or you can download the drivers' binaries directly from the official intel repository by following the steps below: 
-```bash
+	!!! info
+		+ If the command fails with an `in-kernel support` error, this means the drivers are already installed in `/dev/sgx/`. 
 
-wget -c https://download.01.org/intel-sgx/latest/linux-latest/distro/ubuntu20.04-server/sgx_linux_x64_driver_1.41.bin
+	If you have a kernel version **below 5.11**, you should upgrade to a newer version, or you can download the drivers' binaries directly from the official intel repository by following the steps below: 
 
-chmod +x sgx_linux_x64_driver_1.41.bin
-./sgx_linux_x64_driver_1.41.bin
-```
+	```bash
+	wget -c https://download.01.org/intel-sgx/latest/linux-latest/distro/ubuntu20.04-server/sgx_linux_x64_driver_1.41.bin
 
-*PS: if the command fails with an in-kernel support error, this means the drivers are already installed.*   
-*PS 2: If you want to check if you have a working version of SGX on your machine, you can checkout the steps here: https://blindai.mithrilsecurity.io/en/latest/docs/tutorials/core/installation/#on-premise-deployment.*
+	chmod +x sgx_linux_x64_driver_1.41.bin
+	./sgx_linux_x64_driver_1.41.bin
+	```  
 
-***# This download binary type of link is the only sort of 'go to this link' allowed ^^ [YASS] Modified***
+	<h3>OpenEnclave SDK & Intel dependencies</h3>
+	_________________________________________
 
+	OpenEnclave's installation is done in three steps:
 
-### Installing the OpenEnclave SDK and the Intel dependencies
-OpenEnclave's installation is done in three parts:
-- adding the packages to the trusted apt sources list
-- installing all the necessary packages and dependencies
-- Testing and verifying that all the features work
+	- **Adding** the packages to the **trusted apt sources** list.
+	- **Installing** all the necessary **packages** and **dependencies**.
+	- **Testing** and **verifying** that all the **features work**.
 
+	<br />
+	<font size="4"><span style="font-weight: 400">
+	Adding APT sources
+	</span></font>
 
-***# Same as for 'simple'. Nothing is straightforward. I would either get rid of the sentence altogether or make an encouraging statement that implies now we're getting to the fun part [YASS] modified***
+	To install the OpenEnclaveSDK packages and its dependencies, we'll first need to add the necessary repos to the **package manager APT**.
 
-You can follow the instructions below.
+	Use the following commands to configure the Intel and Microsoft Azure APT repositories for downloading and installing Intel SGX and OpenEnclave:
 
-***# Like I said a bit earlier, don't drive people out! =D Especially if you've already put all the required info down. I prefer us copy/pasting a bit of someone else's documentation while saying it's from them and that we took it from there than sending people away to go check theirs ^^ [YASS] Modified*** 
+	```bash
+	echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/intel-sgx.list
+	wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add -
 
-<font size="5"><span style="font-weight: 200">
-Adding APT sources
-</font></span>
+	echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main" | sudo tee /etc/apt/sources.list.d/llvm-toolchain-focal-11.list
+	wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+	echo "deb [arch=amd64] https://packages.microsoft.com/ubuntu/20.04/prod focal main" | sudo tee /etc/apt/sources.list.d/msprod.list
+	wget -qO - https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
 
+	sudo apt update
+	```
 
-We add the necessary repos to the package manager APT to be able to install the necessary packages.
-To configure the Intel and microsoft Azure APT repositories for downloading & installing Intel SGX and OpenEnclave add the following commands:
+	<br />
+	<font size="4"><span style="font-weight: 400">
+	Packages for the security features
+	</span></font>
 
-***# Careful with caps/no caps. You're not consistent with them ^^ Microsoft. Intel. SGX. etc It's good to start getting into the habit [YASS] Can't do better haha, we have intel SGX packages and Azure packages***
+	**Data Center Attestation Primitives** (**DCAP**) is a set of libraries and functions that will allow us to **verify remotely that a program is running** in an SGX enclave and **store the enclave** securely. These two major features are called attestation and sealing, but we'll go over them more in details later in the course. 
 
-```bash
-echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/intel-sgx.list
-wget -qO - https://download.01.org/intel-sgx/sgx_repo/ubuntu/intel-sgx-deb.key | sudo apt-key add -
+	DCAP drivers are normally already installed on the Azure machine, if you are working on an **ubuntu 20.04 with a Linux kernel version of 5.15-azure or above**. You can check which version you're using with the following command.
 
-echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main" | sudo tee /etc/apt/sources.list.d/llvm-toolchain-focal-11.list
-wget -qO - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-echo "deb [arch=amd64] https://packages.microsoft.com/ubuntu/20.04/prod focal main" | sudo tee /etc/apt/sources.list.d/msprod.list
-wget -qO - https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+	```bash
+	$ uname -r
+	5.15.0-1031-azure
+	```
 
-sudo apt update
-```
+	If you are not, some driver DCAP installation might be required:
 
-<font size="5"><span style="font-weight: 200">
-Installing the packages for the security features (Hardware mode with Azure DCsV3 VM)
-</font></span>
+	```bash
+	sudo apt -y install dkms
+	wget https://download.01.org/intel-sgx/sgx-linux/2.19/distro/ubuntu20.04-server/sgx_linux_x64_driver_1.41.bin
+	chmod +x sgx_linux_x64_driver.bin
+	sudo ./sgx_linux_x64_driver.bin
+	```
 
-***# Confused here again with who this step is for. [YASS] we're still on the hardware mode section***
+	<br />
+	<font size="4"><span style="font-weight: 400">
+	Installing the Intel and OpenEnclave packages
+	</span></font>
 
+	Here, we'll install all the packages that we need to perform the following tasks.  
 
-***Data Center Attestation Primitives*** (DCAP) is a set of libraries and functions that provides Intel SGX attestation support for data centers and cloud providers with an attestation model leveraging **Elliptic Curve Digital Signature Algorithm (ECDSA) encryption**. 
-DCAP is necessary for the remote attestation and sealing. Theses features are the ones added as security features by Intel SGX to : 
-- verify remotely that a program is running in an SGX enclave. 
-- store securely an enclave.
+	- Loading and initializing an enclave memory image.
+	- Implement handling for enclave exception conditions.
+	- Implement requests for platform services.
+	- Provisioning keys for DCAP attestation. 
+	- Generating an enclave and signing it. 
 
-*remote attestation and sealing will be explained in more detail and implemented in the next chapters, so don't worry if you don't really grasp what it is yet.*
+	```bash
+	sudo apt -y install clang-11 libssl-dev gdb libsgx-enclave-common libsgx-quote-ex libprotobuf17 libsgx-dcap-ql libsgx-dcap-ql-dev az-dcap-client open-enclave
+	```
 
-**However, it doesn’t work in simulation mode**. We will restrict using **remote attestation to our Azure example**. 
-The DCAP drivers are normally already installed on the Azure machine.
+	You should now see that OpenEnclave was installed in the folder `/opt/openenclave/`.
 
-*PS: If you are working on your own SGX-ready machine and not the DCvs3 Azure VM, the DCAP installation process may be different. please refer to the official documentation and the OpenEnclave DCAP installation.* 	
+	```bash
+	$ ls /opt/openenclave
+	bin include lib share
+	```
 
-***# [LAURA COMMENT: Is the PS meaning: If you are not using the recommended the DCvs3 Azure VM, the installation process will be different? If so, maybe we can say:
-PS: If you are working on your own SGX-ready machine and not the DCvs3 Azure VM, the DCAP installation process may be different. please refer to the official documentation and the OpenEnclave DCAP installation.]***
-***# At this point we still don't know what an attestation is really and I think we should clarify that at some point (with a box for example or something, saying we'll go over it more in details later... But we need more info on attestations. We can't just namedrop them.) 
-[YASS] I've changed to paragraph to make an quick intro without revealing too much and by saying that it will be seen after***
+	!!! abstract "Want to know more?"
 
-If you're working on an *ubuntu 20.04 with a Linux kernel version of 5.15-azure or above*, you should already have the required drivers, otherwise, some driver DCAP installation might be required. 
+		To start exploring the OpenEnclaveSDK once you have it installed, you can go read this [README](https://github.com/openenclave/openenclave/blob/master/docs/GettingStartedDocs/Linux_using_oe_sdk.md)!
 
-```bash
-$ uname -r
-5.15.0-1031-azure
-```
 
-To install the drivers follow these instructions :
-```bash
+	To run OpenEnclave tools directly from our shell without having path issues, we are going to add the following command:
 
-sudo apt -y install dkms
-wget https://download.01.org/intel-sgx/sgx-linux/2.19/distro/ubuntu20.04-server/sgx_linux_x64_driver_1.41.bin
-chmod +x sgx_linux_x64_driver.bin
-sudo ./sgx_linux_x64_driver.bin
-```
+	```bash
+	source /opt/openenclave/share/openenclave/openenclavec
+	```
 
-***# [LAURA COMMENT: I guess this section shouldn't usually apply since if people use our recommended Azure dcv3s VM? So maybe we don't really even need it- or we can make it a bit smaller and just say: If you are using a Azure DCvs3 VM, you should already have the required DCAP drivers, but if you are not, you can install them here: ## [YASS] No, as we saw with when we had the issue with the icelake,when we deployed different VMs all the DCsv3 VMs are not the same]***
+	Then we'll make our development journey easier, by adding it directly to the `.bashrc`. It will make this change persistent in every new shell:
 
-<font size="5"><span style="font-weight: 200">
-Installing the Intel and OpenEnclave packages
-</font></span>
-
-
-```bash
-sudo apt -y install clang-11 libssl-dev gdb libsgx-enclave-common libsgx-quote-ex libprotobuf17 libsgx-dcap-ql libsgx-dcap-ql-dev az-dcap-client open-enclave
-```
-
-Here, we install all the packages that we need to perform the following : 
-
-- Loading and initialization of an enclave memory image.
-- Implement handling for enclave exception conditions.
-- Implement requests for platform services.
-- Provisioning of keys for DCAP attestation. 
-- Tools for generating enclave and signing it. 
-
-You should now see that OpenEnclave was installed in the folder `/opt/openenclave/` (for more detail follow this [link](https://github.com/openenclave/openenclave/blob/master/docs/GettingStartedDocs/Linux_using_oe_sdk.md)):
-
-```bash
-$ ls /opt/openenclave
-bin include lib share
- ```
-To work with our current shell, we are going to add the following command to be able to run OpenEnclave tools directly from our shell without having path issues:
-```bash
-source /opt/openenclave/share/openenclave/openenclavec
-```
-To make our development journey easier, we are going to add it directly to the `.bashrc` to make it persistent in every new shell:
-
-```bash
- echo "source /opt/openenclave/share/openenclave/openenclaverc" >> ~/.bashrc
-```
-
-
-
-***# You might kill me for asking this question haha. Buuut would it make sense and simplify things a lot to run this tuto only in simulation mode to start with?***
-***Like: "first we'll do the KMS in simulation mode, then we'll do it on hardware mode?" Or "first we'll do the KMS in simulation mode, then we'll do something else in hardware mode"? "*** 
-***Or maybe, other option, do another very little project in simulation mode that we would put before the KMS project? Totally me thinking aloud - but I'm curious to know the answer to that.***
-***Part of why I'm wondering this at this point (I have not read the other two parts yet), is that if my question is not possible or not relevant, it might be because it's missing a little part in this text explaining better why we're going through both at the same time instead of just going with Simulation first (easy and for playing) and then testing what we did in Hardware mode.***
-***[YASS] Well, on that we have four parts on the KMS, and the first part we are gonna do it for simulation also (and maybe a little bit of the third part), so for me it will show all that we can do with the simulation (which is really limited), we can do explanations on the first part for the simulation part while adding how we will do it, but I don't think it's really necessary to do a whole other example***
+	```bash
+	echo "source /opt/openenclave/share/openenclave/openenclaverc" >> ~/.bashrc
+	```
 
 <br />
 <br />
