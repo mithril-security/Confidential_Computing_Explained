@@ -1,55 +1,48 @@
-# Installing OpenEnclave SDK (simulation and hardware modes)
+# Installation
 ______________________________________________
 
-To build an sgx application for our minimal KMS, we will be using OpenEnclave SDK which builds enclave applications using C and C++. 
-This installation guide focuses on OpenEnclave SDK running in simulation and hardware mode using Azure.
+To build an SGX application for our minimal KMS, we will be using **OpenEnclave SDK**, which builds enclave applications using C and C++. 
 
-This installation guide focuses on OpenEnclave SDK running in simulation and hardware mode. Simulation mode works on any machine but it does not have all the key security features. It is good for playing around but is not intended for production. Hardware mode will have all the security features but requires specific Intel processors to be run. For real tests, you can find a machine on Azure.
+We will walk you through how to set up everything you need to use it in both **simulation mode** and **hardware mode**. 
 
-[LAURA SUGGESTION FORE PREVIOUS PARAGRAPH:
-This installation guide will walk you through how to set up everything you need to use the OpenEnclave SDK in both simulation mode and hardware mode. Simulation mode works on any machine but does not have all the key security features. It can be useful for running tests but is not intended for production. Hardware mode has all the Intel SGX security features but requires specific Intel processors. If you want to complete this tutorial in hardware mode, we recommend using a DCvs3 Azure VM.
-]
-
-***# Any machine or do you need some minimum processing power ? [YASS] No processing for tests***
+- Simulation mode works on **any machine** but **does not have all the key security features**. It can be useful for running **tests** but is not intended for production. 
+- Hardware mode has **all the Intel SGX security features** but **requires specific Intel processors**. If you want to complete this tutorial in hardware mode, we **recommend** using a **DCvs3 Azure VM**.
 
 ## Pre-requisites
 ______________________________
 
 ### Simulation mode
 
-- *We recommend a Linux Ubuntu distribution **18.04** or **20.04 LTS**.*
+- We recommend a **Linux Ubuntu** distribution **18.04** or **20.04 LTS**.
 
 
 ### Hardware mode
 
-The easiest way to get started would be to create a virtual machine (**VM**) on Azure.
-The VM that will be used for hardware mode in this tutorial is a **DCsv3 VM** with an **Ubuntu 20.04** OS image.
+***#[OPHELIE] One important thing to keep in mind: we can tell people to do this on Azure, no choice. We can explain why we made that choice, but if we have a free trial possibility... This is not like a classic product tutorial. this is a course =) The same way a teacher tells you to buy books, well... we tell people to try this on Azure***
 
-*Prerequisites:*
-- *The processor must support SGX 2, with Flexible Launch Control.*
-- *Linux distribution greater than or equal to 18.04 and Linux headers version greater than or equal to 5.11*
-- *Azure hardware mode: Access to a DCvs3 Azure confidential VM.*
+- The processor must support **SGX 2**, with **Flexible Launch Control**.
+- **Linux** distribution greater than or equal to **18.04** and **Linux headers version** greater than or equal to **5.11**.
 
-***# [LAURA COMMENT: Azure is not necessarily a pre-requisite if someone wants to follow along on their own SGX2 device though? [YASS] actually it is, we only try to give directions for azure because the KMS will only be dev for azure***
+The easiest way to get started is to create a virtual machine (**VM**) on Azure, because it has all those requirements. The VM that will be used for hardware mode in this tutorial is a **DCsv3 VM** with an **Ubuntu 20.04** OS image. 
 
 ***# LAURA COMMENT: We have a guide on how to get a free trial with Azure and set up an Azure DCSV3 VM- we could always include this in this guide if you want? It could be a separate page that we link to, maybe in a `resources` folder or something? I have a copy of this file locally I can share with you] [YASS] You might be right, I'll wait for ophelie insight on this cause I am lazy and don't want to do it (maybe it's too much detail for lecturer? If he can't set up the VM on azure it's not a good begining for what will come after)***
+***[OPHELIE] So I agree with Laura. It's not about not being able to set up the VM on azure. It's about giving instructions all here, on how to do things. And we already have this anyways so it doesn't hurt - but I'm just wondering if actually in this particular case a link wouldn't make more sense because it sends on OUR documentation in BlindAI and I guess that also wouldn't hurt...***
 
 
 ## How to set-up Simulation mode
 ______________________________________
 
-For this simulation set-up mode, we can use any dev environment. However, we highly recommend using **a Linux OS and 20.04 Ubuntu distribution** as they are the ones used in this tutorial and are also the ones that work well with OpenEnclave. 
+For the simulation set-up mode, you can use any development environment, but for this course, we'll be using **a Linux OS and 20.04 Ubuntu distribution** so we highly recommend you use it to make it easier for you. 
 
-***# [LAURA COMMENT: In pre-requisites we say you need a Linux Ubuntu >=18.04 and here we say you can use whatever environment- this is confusing! If it is not essential maybe we can say **recommended:** in the pre-requisites section.]
-[YASS] I've changed the paragraph a little bit***
+The simulation mode works in the same way as the hardware mode. The difference is that the Intel instructions are simulated in software rather than using hardware.
 
-The simulation mode works in the same way as the hardware mode but the Intel instructions are simulated in software rather than using hardware.
+!!! warning
 
-*PS: Keep in mind that key security features behind confidential computing are not available in simulation mode!*
+	- Keep in mind that **key security features** behind confidential computing are **not available in simulation** mode!
 
-*PS: The packages used in this guide may not work for other OS or other linux distributions. The installation may also be different.*  
+	- The **packages** used in this guide **might not work for other OS or Linux distributions**. The installation might also be different.
 
-*When building our KMS project we will note at the beginning of each section if it is possible to follow along in simulation mode!*
+When building our KMS project we will note at the beginning of each section if it is possible to follow along in simulation mode!
 
 ### Installing OpenEnclave SDK and its dependencies
 
