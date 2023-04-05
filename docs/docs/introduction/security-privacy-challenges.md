@@ -27,4 +27,4 @@ This key security flaw often cuts off this type of collaboration from the get go
 
 <br />
 <br />
-[Next :fontawesome-solid-forward-fast:](#){ .md-button .md-button--primary }
+[Next :fontawesome-solid-forward-fast:](./confidential-hardware-garantees.md){ .md-button .md-button--primary }

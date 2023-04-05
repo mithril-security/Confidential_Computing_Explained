@@ -94,3 +94,7 @@ But as we said earlier, it still needs to interact with the operating system onc
 - A call from the enclave to the host (called **Outside Call**)
 
 In the next chapter, you'll start working on the KMS while we walk you through the definition and implementation of these calls!
+
+<br />
+<br />
+[Next :fontawesome-solid-forward-fast:](./trusted-vs-untrusted-impl.md){ .md-button .md-button--primary }

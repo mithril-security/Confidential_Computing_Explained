@@ -23,4 +23,4 @@ It’s an exciting time to learn about Confidential Computing! We’re happy to 
 
 <br />
 <br />
-[Build your KMS :fontawesome-solid-door-open:](#){ .md-button .md-button--primary }
+[Build your KMS :fontawesome-solid-door-open:](../build-your-kms/intro-to-kms.md){ .md-button .md-button--primary }

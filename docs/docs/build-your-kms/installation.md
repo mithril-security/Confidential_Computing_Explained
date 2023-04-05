@@ -263,3 +263,7 @@ To make our development journey easier, we are going to add it directly to the `
 ***Or maybe, other option, do another very little project in simulation mode that we would put before the KMS project? Totally me thinking aloud - but I'm curious to know the answer to that.***
 ***Part of why I'm wondering this at this point (I have not read the other two parts yet), is that if my question is not possible or not relevant, it might be because it's missing a little part in this text explaining better why we're going through both at the same time instead of just going with Simulation first (easy and for playing) and then testing what we did in Hardware mode.***
 ***[YASS] Well, on that we have four parts on the KMS, and the first part we are gonna do it for simulation also (and maybe a little bit of the third part), so for me it will show all that we can do with the simulation (which is really limited), we can do explanations on the first part for the simulation part while adding how we will do it, but I don't think it's really necessary to do a whole other example***
+
+<br />
+<br />
+[Next :fontawesome-solid-forward-fast:](./trusted-vs-untrusted.md){ .md-button .md-button--primary }

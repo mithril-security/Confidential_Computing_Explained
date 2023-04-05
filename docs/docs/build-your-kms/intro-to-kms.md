@@ -51,4 +51,4 @@ Ready to practice? Let’s dive in and install everything we need to get started
 
 <br />
 <br />
-[Next :fontawesome-solid-forward-fast:](#){ .md-button .md-button--primary }
+[Next :fontawesome-solid-forward-fast:](./installation.md){ .md-button .md-button--primary }
