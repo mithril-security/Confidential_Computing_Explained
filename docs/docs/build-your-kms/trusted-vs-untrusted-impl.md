@@ -102,8 +102,9 @@ Next comes the trusted section where we are writing our ecall. We define it as `
 - a string that we only need to read representing the certificate (boundary `[in]`) and the size associated with. 
 - a boolean to keep the server up. 
 
-#### EDL bounds
-
+!!! 
+    Keep in mind that we'll be adding other functions to this file. 
+    But we'll stick to this one for now as it's the only one that we'll be using on PART 1 of this tutorial. 
 
 #### Passing the EDL file through the edger8r tool
 
