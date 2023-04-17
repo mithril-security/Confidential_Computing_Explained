@@ -39,6 +39,8 @@ enclave {
 To communicate easily with our KMS, we need to have a User Interface or maybe easier, an API. Thus, we simply need an HTTP server running inside the enclave. 
 And to make more convenient for us in the next chapters, we will be attempting running an HTTPS server between the enclave and the outside. 
 We will be deploying a ***self-signed HTTPS server***. However, keep in mind that, in a production, this must not implemented this way. 
+Through this HTTPS gateway, we'll be defined multiple endpoints necessary for interacting with our KMS. 
+
 
 ### Quick reminder on TLS & HTTPS
 *Transport Layer Security (TLS)* is a communication securing protocol. It ensures that the communicate between two peers is secured. Its three main properties are:
@@ -126,5 +128,9 @@ kms_args.h  kms_t.c  kms_t.h (trusted)
 kms_u.c  kms_u.h (untrusted)
 ```
 
-And these what we call the proxy files that define the memory management and all the ecall/ocall imports that we've made earlier. 
+And these what we call the proxy files that define all the ecall/ocall imported and those that we write on the EDL file. 
+
+
+
+In the next chapter, we will begin to write the HTTPS server and our KMS, and launching finally the enclave with it. We then will be trying to make some requests to test our KMS. And finally, we'll overview what we still lack and what can we improve to make it more safe and robust. 
 
