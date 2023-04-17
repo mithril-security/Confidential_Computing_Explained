@@ -34,7 +34,30 @@ enclave {
 ```
 
 
-## KMS interfaces
+## KMS example
+To communicate easily with our KMS, we need to have a User Interface or maybe easier, an API. Thus, we simply need an HTTP server running inside the enclave. 
+And to make more convenient for us in the next chapters, we will be attempting running an HTTPS server between the enclave and the outside. 
+We will be deploying a ***self-signed HTTPS server***. However, keep in mind that, in a production, this must not implemented this way. 
 
-## KMS calls  
-### 
+### Quick reminder on TLS & HTTPS
+*Transport Layer Security (TLS)* is a communication securing protocol. It ensures that the communicate between two peers is secured. Its three main properties are:
+- Server authentification. 
+- confidentiality of the exchanged data. 
+- Integrity of the exchanged data. 
+
+One way to achieve that, is by using a *Public Key Infrastructure X.509 (PKIX)*.
+Combining HTTP with a encryption layer such as TLS (which give us HTTPS) makes it thus possible to communicate data safely through HTTP.  
+
+### Https server via an Ecall
+
+ 
+
+
+#### server ecall
+To set up the server, we'll need to deliver to the enclave certain information. 
+- The port it will be working on. 
+- The association of a private key and certificate to establish a secure communication with a third party. 
+
+
+#### EDL bounds
+
