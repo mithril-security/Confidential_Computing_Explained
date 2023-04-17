@@ -70,7 +70,7 @@ Our EDL file can look like the following:
 // kms.edl
 enclave {
     from "openenclave/edl/syscall.edl" import *; // syscalls
-    from "platform.edl" import *; 
+    from "platform.edl" import *; // platform specific sgx calls
 
 
     trusted {
@@ -127,3 +127,4 @@ kms_u.c  kms_u.h (untrusted)
 ```
 
 And these what we call the proxy files that define the memory management and all the ecall/ocall imports that we've made earlier. 
+
