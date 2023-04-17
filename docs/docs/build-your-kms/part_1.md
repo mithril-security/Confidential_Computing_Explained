@@ -1,6 +1,6 @@
 # (4) Part 1: Running the KMS inside the enclave
 
-## Preliminaries 
+## Setting up the makefiles and compilation logic 
 
 
 ## Host code 

@@ -5,7 +5,8 @@ As explained in the last chapter, to be able to interact to and from the enclave
 - **Enclave Calls (ECALLs)**, gives the ability to call, from the application a pre-defined function inside the enclave.  
 - **Outside Calls (OCALLs)**, makes it possible to call a pre-defined function in the application from the enclave. 
 
-Ecalls & Ocalls works differently when the data is sent between the host and the enclave. We will not go into too much detail, but as we don't want to  
+Ecalls & Ocalls works differently when the data is sent between the host and the enclave. We will not go into too much detail (atleast for now), but it is best practice to keep the amount of Ocalls as low and as controled as possible. A example of tampering, is a function that may have some read write privileges that can be altered to read inside the enclave. 
+
 ## Implementation
 The ECALL and OCALL functions are implemented by defining them in a Enclave Definition Langage (EDL) file. This EDL file is then passed on a tool called **edger8r**. 
 
@@ -45,18 +46,52 @@ We will be deploying a ***self-signed HTTPS server***. However, keep in mind tha
 - confidentiality of the exchanged data. 
 - Integrity of the exchanged data. 
 
-One way to achieve that, is by using a *Public Key Infrastructure X.509 (PKIX)*.
+One way to achieve that, is by using a *Public Key Infrastructure X.509 (PKIX)*. Using this certificate mechanism, a client can verify the server's identity. The certificate is based on the *X.509* which is a standard format for representing *public key certificates*. 
+
+!!! 
+    A public key infrastructure relies on asymmetric encryption to perform authentication by verifying the identity through certification. 
+    *PS: we sign the certificate using the private key, and we verify using the public key*
+
+
 Combining HTTP with a encryption layer such as TLS (which give us HTTPS) makes it thus possible to communicate data safely through HTTP.  
 
 ### Https server via an Ecall
+To achieve our HTTPS server, we are going to implement a first Enclave Call (Ecall).
+This Ecall will set up the HTTPS server and will run it. 
+because we're running a self-signed HTTPS server, we will have first to pass on a private key and an associated certificate to the ecall that will be used inside the enclave.
 
- 
+!!! warning
+    Remember that this must not be used as is in production mode. It's only intended as an example for running a local HTTPS server. We will be reviewing how to improve the security in the next chapters. 
 
+We'll also be adding two other arguments, one will be for specifying the connection port and another to keep the connection alive. 
 
-#### server ecall
-To set up the server, we'll need to deliver to the enclave certain information. 
-- The port it will be working on. 
-- The association of a private key and certificate to establish a secure communication with a third party. 
+Our Edl we look like the following:
+```c
+
+enclave {
+    from "openenclave/edl/syscall.edl" import *;
+    from "platform.edl" import *;
+#ifdef EDL_USE_HOST_ENTROPY
+    from "openenclave/edl/sgx/entropy.edl" import *;
+#endif
+
+    trusted {
+        public int set_up_server(
+            [in, string] const char* port, 
+            [in, string] const char* private_key, size_t len_private_key,
+            [in, string] const char* certificate, size_t len_certificate, 
+            bool keep_server_up
+        );
+    };
+
+    // untrusted {
+
+    // };
+};
+```
+
+Let's begin by explaining the first import lines. We've imported three different edl files.  
+
 
 
 #### EDL bounds
