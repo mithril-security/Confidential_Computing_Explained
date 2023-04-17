@@ -8,7 +8,7 @@ As explained in the last chapter, to be able to interact to and from the enclave
 Ecalls & Ocalls works differently when the data is sent between the host and the enclave. We will not go into too much detail (atleast for now), but it is best practice to keep the amount of Ocalls as low and as controled as possible. A example of tampering, is a function that may have some read write privileges that can be altered to read inside the enclave. 
 
 ## Implementation
-The ECALL and OCALL functions are implemented by defining them in a Enclave Definition Langage (EDL) file. This EDL file is then passed on a tool called **edger8r**. 
+The ECALL and OCALL functions are implemented by defining them in a ***Enclave Definition Langage (EDL)*** file. This EDL file is then passed on a tool called **edger8r** to generate to proxy files that will be used to interact between the host and enclave. 
 
 We define the ECALL & OCALL functions the same way we write prototypes in header files in C/C++. 
 
@@ -65,15 +65,13 @@ because we're running a self-signed HTTPS server, we will have first to pass on 
 
 We'll also be adding two other arguments, one will be for specifying the connection port and another to keep the connection alive. 
 
-Our Edl we look like the following:
+Our EDL file can look like the following:
 ```c
-
+// kms.edl
 enclave {
-    from "openenclave/edl/syscall.edl" import *;
-    from "platform.edl" import *;
-#ifdef EDL_USE_HOST_ENTROPY
-    from "openenclave/edl/sgx/entropy.edl" import *;
-#endif
+    from "openenclave/edl/syscall.edl" import *; // syscalls
+    from "platform.edl" import *; 
+
 
     trusted {
         public int set_up_server(
@@ -90,9 +88,42 @@ enclave {
 };
 ```
 
-Let's begin by explaining the first import lines. We've imported three different edl files.  
+Let's begin by explaining the first import lines. We've imported three different edl files. 
+The OpenEnclave edl files, depending on the use might be called in two different paths. If it's not specific to the platform, the path for the EDL becomes `openenclave/edl/<name>.edl`, otherwise, the path must indicate the platform such as `openenclave/edl/sgx/<name>.edl`. 
 
+The first import is `syscall.edl` which encompass all of the syscalls supported (which contain also sockets, time, ioctl...). 
+The second one, `platform.edl` imports all the other edl files specific to Intel SGX (We will see more about it in the next chapters). 
 
+Next comes the trusted section where we are writing our ecall. We define it as `set_up_server` with four arguments as precendtly explained :
+- a string that we only need to read representing the server's port (boundary `[in]`) 
+- a string that we only need to read representing the private key (boundary `[in]`) and the size associated with.
+- a string that we only need to read representing the certificate (boundary `[in]`) and the size associated with. 
+- a boolean to keep the server up. 
 
 #### EDL bounds
 
+
+#### Passing the EDL file through the edger8r tool
+
+We talked in the implementation section above that we use ***edger8r*** to generate proxy files that serves as the way to communicate back and forth from the enclave to the host.  
+
+to generate those files we can run the following command : 
+```bash
+# for the trusted part
+oeedger8r kms.edl --trusted \
+    --search-path /opt/openenclave/share/pkgconfig/../../include \
+    --search-path /opt/openenclave/share/pkgconfig/../../include/openenclave/edl/sgx 
+
+# for the untrusted part 
+oeedger8r kms.edl --untrusted \
+    --search-path /opt/openenclave/share/pkgconfig/../../include \
+    --search-path /opt/openenclave/share/pkgconfig/../../include/openenclave/edl/sgx 
+
+```
+It will generate for example, the following files : 
+```
+kms_args.h  kms_t.c  kms_t.h (trusted) 
+kms_u.c  kms_u.h (untrusted)
+```
+
+And these what we call the proxy files that define the memory management and all the ecall/ocall imports that we've made earlier. 
