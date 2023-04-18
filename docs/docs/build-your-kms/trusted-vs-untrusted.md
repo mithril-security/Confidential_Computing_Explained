@@ -96,4 +96,4 @@ In the next chapter, we'll walk you through the definition and implementation of
 
 <br />
 <br />
-[Next Chapter Under Construction :fontawesome-solid-hammer:](../../index.md){ .md-button .md-button--primary }
+[Next :fontawesome-solid-forward-fast:](./trusted-vs-untrusted-impl.md){ .md-button .md-button--primary }

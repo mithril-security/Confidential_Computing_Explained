@@ -41,7 +41,7 @@ enclave {
 ```
 
 ________________________________
-## A self-signed HTTPS server
+## HTTPS: the KMS API
 
 Let's get coding! 
 
@@ -50,7 +50,7 @@ To communicate with our KMS, we first need to have a user interface or a program
 In this chapter, we'll start by coding a **simplified version** of it, which **will be unsafe**. But as we go through the chapters of the course, we'll **improve** that code to make it more robust against attacks - all the way **until** we it is ready for a **realistic** scenario! 
 
 ___________________________________________
-### TLS: the S in HTTPS
+## TLS: the 'S' in 'HTTPS'
 
 To communicate data safely through HTTP, you need an encryption layer such a the **Transport Layer Security** or **TLS**. When you combine them, HTTP becomes HTTPS because the TLS ensures that the communication between two peers is secured.
 
@@ -67,9 +67,9 @@ One of the way to implement these properties is by using a **Public Key Infrastr
 	A public key infrastructure relies on **asymmetric encryption** to perform **authentication**, by verifying the identity through certification. This means there are two keys: the **private key**, which is used **to sign** the certificate, and the **public key**, which is used **to verify** that the signature is the right one. 
 
 ___________________________________
-## Implementing an Ecall
+## Set up and run the server
 
-Our first step will be to implement an **Ecall** that **will set up the HTTPS server and run it**. 
+To **set up the HTTPS server and run it**, we'll **implement an Enclave Call (Ecall)**! 
 
 Our HTTPS server is self-signed, which means that we will have to pass fours arguments to the ECall: 
 
@@ -78,7 +78,7 @@ Our HTTPS server is self-signed, which means that we will have to pass fours arg
 + the **connection port**,
 + and a boolean specifying to **keep the connection alive**. 
 
-Our EDL file can look like the following:
+Create a `kms.edl` file and copy/paste, write in the following code block:
 
 ```c
 // kms.edl
@@ -102,29 +102,52 @@ enclave {
 };
 ```
 
-Let's begin by explaining the first import lines. We've imported three different edl files. 
+### Importing the EDL files
 
-The OpenEnclave edl files, depending on the use might be called in two different paths. If it's not specific to the platform, the path for the EDL becomes `openenclave/edl/<name>.edl`, otherwise, the path must indicate the platform such as `openenclave/edl/sgx/<name>.edl`. 
+The first lines **import** different **EDL files**: 
 
-The first import is `syscall.edl` which encompass all of the syscalls supported (which contain also sockets, time, ioctl...). 
-The second one, `platform.edl` imports all the other edl files specific to Intel SGX (We will see more about it in the next chapters). 
+```c
+enclave {
+    from "openenclave/edl/syscall.edl" import *; // syscalls
+    from "platform.edl" import *; // platform specific sgx calls
+```
 
-Next comes the trusted section where we are writing our ecall. We define it as `set_up_server` with four arguments as precendtly explained :
++ `syscall.edl` which encompass all of the syscalls supported (which contain also sockets, time, ioctl...). 
++ `platform.edl` imports all the other EDL files specific to Intel SGX (which we'll dive in more in the next chapters). 
 
-- a string that we only need to read representing the server's port (boundary `[in]`) 
-- a string that we only need to read representing the private key (boundary `[in]`) and the size associated with.
-- a string that we only need to read representing the certificate (boundary `[in]`) and the size associated with. 
-- a boolean to keep the server up. 
+### Implementing the Ecall
+
+Next comes the **trusted section**, where we write our Ecall:
+
+```c
+	trusted {
+			public int set_up_server(
+				[in, string] const char* port, 
+				[in, string] const char* private_key, size_t len_private_key,
+				[in, string] const char* certificate, size_t len_certificate, 
+				bool keep_server_up
+			);
+		};
+```  
+
+We define the Ecall as `set_up_server` with the four arguments we detailled earlier : 
+
++ a **string** representing the server's **port** (boundary `[in]`). 
++ a **string** representing the **private key** (boundary `[in]`) and the size associated with it.
++ a **string** representing the **certificate** (boundary `[in]`) and the size associated with it. 
++ a **boolean** to **keep the server up**. 
+
+All strings are `const` because we only need to read them.
 
 !!! note
-    Keep in mind that we'll be adding other functions to this file. 
-    But we'll stick to this one for now as it's the only one that we'll be using on PART 1 of this tutorial. 
 
-#### Passing the EDL file through the edger8r tool
+    We'll be adding other functions to this file in the future! But this is the only one we'll need for the first part of this course, so we'll go over them at a later stage.
 
-We talked in the implementation section above that we use ***edger8r*** to generate proxy files that serves as the way to communicate back and forth from the enclave to the host.  
+### Proxy files and the `edger8r` tool
 
-to generate those files we can run the following command : 
+It's now time to use the **edger8r** tool to generate the proxy files! They'll be the way to communicate back and forth between the enclave and the host. 
+
+To generate those files we can run the following commands. You can try them for demonstration and exploration purposes - but as you'll see in the next chapter, you won't have to type in those commands manually because they'll be in a Makefile. 
 
 ```bash
 # for the trusted part
@@ -139,15 +162,17 @@ oeedger8r kms.edl --untrusted \
 
 ```
 
-It will generate for example, the following files : 
+In our case, we'll call the proxy files generated by those commands with the following names:
 
-```
+```bash
 kms_args.h  kms_t.c  kms_t.h (trusted) 
 kms_u.c  kms_u.h (untrusted)
 ```
 
-And these what we call the proxy files that define all the ecall/ocall imported and those that we write on the EDL file. 
+Those proxy files define all the imported Ecall and Ocall, as well as those that we'll write in the EDL file.   
 
 
-
-In the next chapter, we will begin to write the HTTPS server and our KMS, and launching finally the enclave with it. We then will be trying to make some requests to test our KMS. And finally, we'll overview what we still lack and what can we improve to make it more safe and robust. 
+In the next chapter, we will begin to write the HTTPS server and our KMS. We'll also launch our first enclave! 
+<br />
+<br />
+[Next Chapter Under Construction :fontawesome-solid-hammer:](./trusted-vs-untrusted-impl.md){ .md-button .md-button--primary }
