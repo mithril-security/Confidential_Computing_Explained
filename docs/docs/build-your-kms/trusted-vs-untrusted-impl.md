@@ -1,4 +1,4 @@
-# Implementing the trusted/untrusted interfaces in SGX with OpenEnclave
+# Implementing a baby HTTPS server
 ___________________________________________________
 
 As explained in the last chapter, we have to define two different calls to be able to interact with the enclave:
@@ -6,75 +6,80 @@ As explained in the last chapter, we have to define two different calls to be ab
 - **Enclave Calls (ECALLs)** allow the application to call a pre-defined function inside the enclave.  
 - **Outside Calls (OCALLs)** allow the enclave to call a pre-defined function in the application. 
 
-Ecalls and Ocalls work differently. We will not go into too much detail explaining how (at least for now), but it is best practice to keep the amount of Ocalls as low and as controled as possible. For example, it would be possible to tamper with the enclave by altering a function with some read/write privileges to read inside the enclave. 
+Ecalls and Ocalls work differently. We will not go into too much detail explaining how (at least for now), but it is best practice to **keep** the amount of **Ocalls** as **low** and as **controlled** as possible. A misuse of an external function on a Ocall can leak or write enclave data if not properly managed.
 
 ___________________________________________________
-## Implementation
+## EDL and proxy files
 
-The ECALL and OCALL functions are implemented by defining them in a ***Enclave Definition Langage (EDL)*** file. This EDL file is then passed on a tool called **edger8r** to generate to proxy files that will be used to interact between the host and enclave. 
+To implement the Ecall and Ocall, we'll need to define them in a **Enclave Definition Langage (EDL)** file. 
 
-We define the ECALL & OCALL functions the same way we write prototypes in header files in C/C++. 
+Then we'll pass this EDL file to a tool called **edger8r**. We'll use it to generate **proxy files**, which will handle interactions between the host and the enclave. 
 
-The general skeleton of the EDL file resembles the following: 
+We define the Ecall and Ocall functions the same way we write prototypes in header files in C/C++. 
+
+The general skeleton of an EDL file resembles the following: 
+
 ```C
 enclave {
-    // here we declare all the ECALL functions that will be ran inside the enclave 
+    // Here we declare all the Ecall functions that will be ran inside the enclave 
     trusted {
         public return_type ecall_func(
             [param_boundary] param_type param_name
         );
-        // Other ecall functions...
+        // Other Ecall functions...
     };
 
 
-    // And here we define all the OCALL functions needed 
+    // Here we define all the Ocall functions needed 
     untrusted {
         public return_type ocall_func(
             [param_boundary] param_type param_name
         );
-        // Other ocall functions... 
+        // Other Ocall functions... 
     };
 };
 ```
 
 ________________________________
-## KMS example
+## A self-signed HTTPS server
 
-To communicate easily with our KMS, we need to have a User Interface or maybe easier, an API. Thus, we simply need an HTTP server running inside the enclave. 
-And to make more convenient for us in the next chapters, we will be attempting running an HTTPS server between the enclave and the outside. 
-We will be deploying a ***self-signed HTTPS server***. However, keep in mind that, in a production, this must not implemented this way. 
-Through this HTTPS gateway, we'll be defined multiple endpoints necessary for interacting with our KMS. 
+Let's get coding! 
 
+To communicate with our KMS, we first need to have a user interface or a programming interface (API). To do so, we'll implement a **self-signed HTTPS server** running inside the enclave. We'll define multiple endpoints which will be necessary for interacting with our KMS.
 
-### Quick reminder on TLS & HTTPS
+In this chapter, we'll start by coding a **simplified version** of it, which **will be unsafe**. But as we go through the chapters of the course, we'll **improve** that code to make it more robust against attacks - all the way **until** we it is ready for a **realistic** scenario! 
 
-*Transport Layer Security (TLS)* is a communication securing protocol. It ensures that the communicate between two peers is secured. Its three main properties are:
+___________________________________________
+### TLS: the S in HTTPS
+
+To communicate data safely through HTTP, you need an encryption layer such a the **Transport Layer Security** or **TLS**. When you combine them, HTTP becomes HTTPS because the TLS ensures that the communication between two peers is secured.
+
+The three main properties of TLS are:
 
 - Server authentification. 
-- confidentiality of the exchanged data. 
+- Confidentiality of the exchanged data. 
 - Integrity of the exchanged data. 
 
-One way to achieve that, is by using a *Public Key Infrastructure X.509 (PKIX)*. Using this certificate mechanism, a client can verify the server's identity. The certificate is based on the *X.509* which is a standard format for representing *public key certificates*. 
+One of the way to implement these properties is by using a **Public Key Infrastructure X.509 (PKIX)**. The PKI certificate mechanism allows clients to verify the server's identity, and the certificate is based on the **X.509** format, which is a standard for representing **public key certificates**. 
 
-!!! info
-    A public key infrastructure relies on asymmetric encryption to perform authentication by verifying the identity through certification. 
+!!! info "Key pairs"
 
-    *PS: we sign the certificate using the private key, and we verify using the public key*
+	A public key infrastructure relies on **asymmetric encryption** to perform **authentication**, by verifying the identity through certification. This means there are two keys: the **private key**, which is used **to sign** the certificate, and the **public key**, which is used **to verify** that the signature is the right one. 
 
+___________________________________
+## Implementing an Ecall
 
-Combining HTTP with a encryption layer such as TLS (which give us HTTPS) makes it thus possible to communicate data safely through HTTP.  
+Our first step will be to implement an **Ecall** that **will set up the HTTPS server and run it**. 
 
-### Https server via an Ecall
-To achieve our HTTPS server, we are going to implement a first Enclave Call (Ecall).
-This Ecall will set up the HTTPS server and will run it. 
-because we're running a self-signed HTTPS server, we will have first to pass on a private key and an associated certificate to the ecall that will be used inside the enclave.
+Our HTTPS server is self-signed, which means that we will have to pass fours arguments to the ECall: 
 
-!!! warning
-    Remember that this must not be used as is in production mode. It's only intended as an example for running a local HTTPS server. We will be reviewing how to improve the security in the next chapters. 
-
-We'll also be adding two other arguments, one will be for specifying the connection port and another to keep the connection alive. 
++ **a private key**,
++ an **associated certificate** that will be used inside the enclave,
++ the **connection port**,
++ and a boolean specifying to **keep the connection alive**. 
 
 Our EDL file can look like the following:
+
 ```c
 // kms.edl
 enclave {
@@ -98,6 +103,7 @@ enclave {
 ```
 
 Let's begin by explaining the first import lines. We've imported three different edl files. 
+
 The OpenEnclave edl files, depending on the use might be called in two different paths. If it's not specific to the platform, the path for the EDL becomes `openenclave/edl/<name>.edl`, otherwise, the path must indicate the platform such as `openenclave/edl/sgx/<name>.edl`. 
 
 The first import is `syscall.edl` which encompass all of the syscalls supported (which contain also sockets, time, ioctl...). 
@@ -110,7 +116,7 @@ Next comes the trusted section where we are writing our ecall. We define it as `
 - a string that we only need to read representing the certificate (boundary `[in]`) and the size associated with. 
 - a boolean to keep the server up. 
 
-!!! 
+!!! note
     Keep in mind that we'll be adding other functions to this file. 
     But we'll stick to this one for now as it's the only one that we'll be using on PART 1 of this tutorial. 
 
@@ -119,6 +125,7 @@ Next comes the trusted section where we are writing our ecall. We define it as `
 We talked in the implementation section above that we use ***edger8r*** to generate proxy files that serves as the way to communicate back and forth from the enclave to the host.  
 
 to generate those files we can run the following command : 
+
 ```bash
 # for the trusted part
 oeedger8r kms.edl --trusted \
@@ -131,7 +138,9 @@ oeedger8r kms.edl --untrusted \
     --search-path /opt/openenclave/share/pkgconfig/../../include/openenclave/edl/sgx 
 
 ```
+
 It will generate for example, the following files : 
+
 ```
 kms_args.h  kms_t.c  kms_t.h (trusted) 
 kms_u.c  kms_u.h (untrusted)
