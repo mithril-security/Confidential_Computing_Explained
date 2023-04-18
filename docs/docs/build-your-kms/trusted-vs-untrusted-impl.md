@@ -6,7 +6,7 @@ As explained in the last chapter, we have to define two different calls to be ab
 - **Enclave Calls (ECALLs)** allow the application to call a pre-defined function inside the enclave.  
 - **Outside Calls (OCALLs)** allow the enclave to call a pre-defined function in the application. 
 
-Ecalls and Ocalls work differently. We will not go into too much detail explaining how (at least for now), but it is best practice to **keep** the amount of **Ocalls** as **low** and as **controlled** as possible. A misuse of an external function on a Ocall can leak or write enclave data if not properly managed.
+Ecalls and Ocalls work differently. We will not go into too much detail explaining how (at least for now), but it is best practice to **keep** the amount of **Ocalls** as **low** and as **controlled** as possible. A misuse of an external function on a Ocall can leak or write enclave data if not properly implemented.
 
 ___________________________________________________
 ## EDL and proxy files
@@ -52,7 +52,7 @@ In this chapter, we'll start by coding a **simplified version** of it, which **w
 ___________________________________________
 ## TLS: the 'S' in 'HTTPS'
 
-To communicate data safely through HTTP, you need an encryption layer such a the **Transport Layer Security** or **TLS**. When you combine them, HTTP becomes HTTPS because the TLS ensures that the communication between two peers is secured.
+To communicate data safely through HTTP, you need an encryption layer such as the **Transport Layer Security** or **TLS**. When you combine them, HTTP becomes HTTPS because the TLS ensures that the communication between two peers is secured.
 
 The three main properties of TLS are:
 
@@ -62,7 +62,7 @@ The three main properties of TLS are:
 
 One of the way to implement these properties is by using a **Public Key Infrastructure X.509 (PKIX)**. The PKI certificate mechanism allows clients to verify the server's identity, and the certificate is based on the **X.509** format, which is a standard for representing **public key certificates**. 
 
-!!! info "Key pairs"
+!!! info PKI
 
 	A public key infrastructure relies on **asymmetric encryption** to perform **authentication**, by verifying the identity through certification. This means there are two keys: the **private key**, which is used **to sign** the certificate, and the **public key**, which is used **to verify** that the signature is the right one. 
 
@@ -71,7 +71,7 @@ ___________________________________
 
 To **set up the HTTPS server and run it**, we'll **implement an Enclave Call (Ecall)**! 
 
-Our HTTPS server is self-signed, which means that we will have to pass fours arguments to the ECall: 
+Our HTTPS server is self-signed, which means that we will have to pass four arguments to the Ecall: 
 
 + **a private key**,
 + an **associated certificate** that will be used inside the enclave,
@@ -137,7 +137,7 @@ We define the Ecall as `set_up_server` with the four arguments we detailled earl
 + a **string** representing the **certificate** (boundary `[in]`) and the size associated with it. 
 + a **boolean** to **keep the server up**. 
 
-All strings are `const` because we only need to read them.
+The boundary is `in` because we only need to read them.
 
 !!! note
 
