@@ -1,13 +1,16 @@
-# (3) Implementing the trusted/untrusted interfaces in SGX with OpenEnclave
+# Implementing the trusted/untrusted interfaces in SGX with OpenEnclave
+___________________________________________________
 
-## Definition of ECall and OCall and the interfaces
-As explained in the last chapter, to be able to interact to and from the enclave, we have to define two different calls :
-- **Enclave Calls (ECALLs)**, gives the ability to call, from the application a pre-defined function inside the enclave.  
-- **Outside Calls (OCALLs)**, makes it possible to call a pre-defined function in the application from the enclave. 
+As explained in the last chapter, we have to define two different calls to be able to interact with the enclave:
 
-Ecalls & Ocalls works differently when the data is sent between the host and the enclave. We will not go into too much detail (atleast for now), but it is best practice to keep the amount of Ocalls as low and as controled as possible. A example of tampering, is a function that may have some read write privileges that can be altered to read inside the enclave. 
+- **Enclave Calls (ECALLs)** allow the application to call a pre-defined function inside the enclave.  
+- **Outside Calls (OCALLs)** allow the enclave to call a pre-defined function in the application. 
 
+Ecalls and Ocalls work differently. We will not go into too much detail explaining how (at least for now), but it is best practice to keep the amount of Ocalls as low and as controled as possible. For example, it would be possible to tamper with the enclave by altering a function with some read/write privileges to read inside the enclave. 
+
+___________________________________________________
 ## Implementation
+
 The ECALL and OCALL functions are implemented by defining them in a ***Enclave Definition Langage (EDL)*** file. This EDL file is then passed on a tool called **edger8r** to generate to proxy files that will be used to interact between the host and enclave. 
 
 We define the ECALL & OCALL functions the same way we write prototypes in header files in C/C++. 
@@ -34,8 +37,9 @@ enclave {
 };
 ```
 
-
+________________________________
 ## KMS example
+
 To communicate easily with our KMS, we need to have a User Interface or maybe easier, an API. Thus, we simply need an HTTP server running inside the enclave. 
 And to make more convenient for us in the next chapters, we will be attempting running an HTTPS server between the enclave and the outside. 
 We will be deploying a ***self-signed HTTPS server***. However, keep in mind that, in a production, this must not implemented this way. 
@@ -43,15 +47,18 @@ Through this HTTPS gateway, we'll be defined multiple endpoints necessary for in
 
 
 ### Quick reminder on TLS & HTTPS
+
 *Transport Layer Security (TLS)* is a communication securing protocol. It ensures that the communicate between two peers is secured. Its three main properties are:
+
 - Server authentification. 
 - confidentiality of the exchanged data. 
 - Integrity of the exchanged data. 
 
 One way to achieve that, is by using a *Public Key Infrastructure X.509 (PKIX)*. Using this certificate mechanism, a client can verify the server's identity. The certificate is based on the *X.509* which is a standard format for representing *public key certificates*. 
 
-!!! 
+!!! info
     A public key infrastructure relies on asymmetric encryption to perform authentication by verifying the identity through certification. 
+
     *PS: we sign the certificate using the private key, and we verify using the public key*
 
 
@@ -97,6 +104,7 @@ The first import is `syscall.edl` which encompass all of the syscalls supported 
 The second one, `platform.edl` imports all the other edl files specific to Intel SGX (We will see more about it in the next chapters). 
 
 Next comes the trusted section where we are writing our ecall. We define it as `set_up_server` with four arguments as precendtly explained :
+
 - a string that we only need to read representing the server's port (boundary `[in]`) 
 - a string that we only need to read representing the private key (boundary `[in]`) and the size associated with.
 - a string that we only need to read representing the certificate (boundary `[in]`) and the size associated with. 
@@ -134,4 +142,3 @@ And these what we call the proxy files that define all the ecall/ocall imported 
 
 
 In the next chapter, we will begin to write the HTTPS server and our KMS, and launching finally the enclave with it. We then will be trying to make some requests to test our KMS. And finally, we'll overview what we still lack and what can we improve to make it more safe and robust. 
-
