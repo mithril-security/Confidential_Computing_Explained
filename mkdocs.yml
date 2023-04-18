@@ -104,4 +104,4 @@ nav:
     - Introduction: "docs/build-your-kms/intro-to-kms.md"
     - Installation: "docs/build-your-kms/installation.md"
     - Trusted VS Untrusted: "docs/build-your-kms/trusted-vs-untrusted.md"
- #   - Implementing Calls: "docs/build-your-kms/trusted-vs-untrusted-impl.md"
+    - Implementing calls: "docs/build-your-kms/trusted-vs-untrusted-impl.md"
