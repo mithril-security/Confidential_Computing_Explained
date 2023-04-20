@@ -1,3 +1,4 @@
+./mini_kms/part_1/certificate.pem
 mini_kms/part_1/certificate.pem
 mini_kms/part_1/enclave/enclave.o
 mini_kms/part_1/enclave/enclave.signed
@@ -13,4 +14,6 @@ mini_kms/part_1/host/kms_host
 mini_kms/part_1/host/kms_u.c
 mini_kms/part_1/host/kms_u.h
 mini_kms/part_1/host/kms_u.o
-mini_kms/part_1/key.pem
+./mini_kms/part_1/private_key.key
+mini_kms/part_1/private_key.key
+.vscode/settings.json

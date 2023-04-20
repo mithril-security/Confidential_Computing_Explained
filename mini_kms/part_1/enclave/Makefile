@@ -29,15 +29,16 @@ build:
 	oeedger8r ../kms.edl --trusted \
 		--search-path $(INCDIR) \
 		--search-path $(INCDIR)/openenclave/edl/sgx
-	$(CC) -g -c $(CFLAGS) -DOE_API_VERSION=2 enclave.cpp -o enclave.o
+	$(CXX) -g -c $(CFLAGS) -DOE_API_VERSION=2 enclave.cpp -o enclave.o
 	$(CC) -g -c $(CFLAGS) -DOE_API_VERSION=2 kms_t.c -o kms_t.o
-	$(CC) -o enclave kms_t.o enclave.o $(LDFLAGS) $(CRYPTO_LDFLAGS)
+	$(CC) -g -c $(CFLAGS) -DOE_API_VERSION=2 ../mongoose/mongoose.c -lmbedtls -lmbedcrypto -lmbedx509 -D MG_ENABLE_MBEDTLS=1 -o mongoose.o
+	$(CXX) -o enclave kms_t.o mongoose.o enclave.o -D MG_ENABLE_MBEDTLS=1 -loelibcxx -loehostsock -loehostresolver -loehostepoll $(LDFLAGS) $(CRYPTO_LDFLAGS) 
 
 sign:
 	oesign sign -e enclave -c kms.conf -k private.pem
 
 clean:
-	rm -f enclave.o enclave enclave.signed private.pem public.pem kms_t.o kms_t.h kms_t.c kms_args.h
+	rm -f mongoose.o enclave.o enclave enclave.signed private.pem public.pem kms_t.o kms_t.h kms_t.c kms_args.h
 
 keys:
 	openssl genrsa -out private.pem -3 3072

@@ -1,0 +1,3 @@
+[submodule "mini_kms/part_1/mongoose"]
+	path = mini_kms/part_1/mongoose
+	url = https://github.com/cesanta/mongoose.git

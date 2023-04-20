@@ -1,13 +1,18 @@
 
 enclave {
     from "openenclave/edl/syscall.edl" import *;
+     from "openenclave/edl/logging.edl" import oe_write_ocall;
+    from "openenclave/edl/fcntl.edl" import *;
+    from "openenclave/edl/socket.edl" import *;
+    from "openenclave/edl/epoll.edl" import *;
     from "platform.edl" import *;
 #ifdef EDL_USE_HOST_ENTROPY
     from "openenclave/edl/sgx/entropy.edl" import *;
 #endif
+
     trusted {
-        public int set_up_server([in, string] const char* port, [in, count=len_private_key] const unsigned char* private_key, size_t len_private_key,
-         [in, count=len_certificate] const unsigned char* certificate, size_t len_certificate, bool keep_server_up);
+        public int set_up_server([in, string] const char* port, [in, string] const char* private_key, size_t len_private_key,
+         [in, string] const char* certificate, size_t len_certificate, bool keep_server_up);
 /* 
         public void initialize_wallet(
             [in, count=password_len] const char* password,

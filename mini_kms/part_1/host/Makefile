@@ -12,7 +12,7 @@ build:
 		--search-path $(INCDIR) \
 		--search-path $(INCDIR)/openenclave/edl/sgx
 	$(CXX) -g -c $(CFLAGS) host.cpp
-	$(CXX) -g -c $(CFLAGS) kms_u.c
+	$(CC) -g -c $(CFLAGS) kms_u.c
 	$(CXX) -o kms_host kms_u.o host.o $(LDFLAGS)
 
 clean:

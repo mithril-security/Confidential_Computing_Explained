@@ -29,9 +29,9 @@ build:
 	oeedger8r ../kms.edl --trusted \
 		--search-path $(INCDIR) \
 		--search-path $(INCDIR)/openenclave/edl/sgx
-	$(CC) -g -c $(CFLAGS) -DOE_API_VERSION=2 enclave.cpp -o enclave.o
+	$(CXX) -g -c $(CFLAGS) -DOE_API_VERSION=2 enclave.cpp -o enclave.o
 	$(CC) -g -c $(CFLAGS) -DOE_API_VERSION=2 kms_t.c -o kms_t.o
-	$(CC) -o enclave kms_t.o enclave.o $(LDFLAGS) $(CRYPTO_LDFLAGS)
+	$(CXX) -o enclave kms_t.o enclave.o $(LDFLAGS) $(CRYPTO_LDFLAGS) -loehostsock -loehostresolver
 
 sign:
 	oesign sign -e enclave -c kms.conf -k private.pem
