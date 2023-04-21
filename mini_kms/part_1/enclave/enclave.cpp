@@ -135,12 +135,12 @@ static void api(struct mg_connection *c, int ev, void *ev_data, void *fn_data)
             mg_http_reply(c, 200, "Content-Type: application/json\r\n", "{%m: \"%s\", %m: \"%s\"}\r\n", mg_print_esc, 0, "aes_key",
                         &key, mg_print_esc, 0, "encoding", "base64");
         } else if (mg_http_match_uri(hm, "/generate-rsa-key-pair")) {
-            unsigned char public_key;
-            unsigned char private_key;
-            generate_rsa_key(&public_key, &private_key);
-            TRACE_ENCLAVE("key is equal to : {%s}", &public_key);
+            unsigned char** rsa_public_key;
+            unsigned char** rsa_private_key;
+            generate_rsa_keypair(rsa_public_key, rsa_private_key);
+            TRACE_ENCLAVE("key is equal to : {%x}", &rsa_public_key);
             mg_http_reply(c, 200, "Content-Type: application/json\r\n", "{%m: \"%s\", %m: \"%s\"}\r\n", mg_print_esc, 0, "public_key",
-                        &public_key, mg_print_esc, 0, "encoding", "base64");
+                        &rsa_public_key, mg_print_esc, 0, "encoding", "base64");
         }
         else {
             mg_http_reply(c, 200, "", "{\"result\": \"%.*s\"}\n", (int) hm->uri.len,
