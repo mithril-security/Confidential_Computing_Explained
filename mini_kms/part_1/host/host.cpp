@@ -57,25 +57,25 @@ oe_enclave_t* create_enclave(const char* enclave_path, uint32_t flags)
 }
 
 // function for getting the tls certificate and pk to pass on to the server
-std::string get_file(char* filename)
-{
+// std::string get_file(char* filename)
+// {
 
-    std::string file_data;
+//     std::string file_data;
 
-    std::ifstream file{filename};
+//     std::ifstream file{filename};
 
-    if(!file){
-        std::cerr << "Error: "<< filename << " could not be read!\n";
-    }
-    while (file) {
-        std::string input;
-        getline(file, input);
-        file_data.append(input);
-        file_data.append("\n");
-    }
-    file_data.append("\0");
-    return file_data;
-}
+//     if(!file){
+//         std::cerr << "Error: "<< filename << " could not be read!\n";
+//     }
+//     while (file) {
+//         std::string input;
+//         getline(file, input);
+//         file_data.append(input);
+//         file_data.append("\n");
+//     }
+//     file_data.append("\0");
+//     return file_data;
+// }
 
 
 int main(int argc, const char* argv[])
@@ -100,14 +100,9 @@ int main(int argc, const char* argv[])
     //     goto exit;
     // }
 
-    printf("[Host]: Getting certificate and private key for the tls connection.\n");
-    std::string private_key = get_file("private_key.key");
-    std::string certificate = get_file("certificate.pem");
-    const char *c_private_key = (const char*)malloc(sizeof(private_key.size()));
-    c_private_key = (const char*)private_key.data();
-    size_t len_private_key = (size_t)private_key.size();
-    const char *c_certificate = (const char*)certificate.data();
-    size_t len_certificate = (size_t)certificate.size(); 
+    // printf("[Host]: Getting certificate and private key for the tls connection.\n");
+    // std::string private_key = get_file("private_key.key");
+    // std::string certificate = get_file("certificate.pem");
 
 
     // Enclave creation 
@@ -119,7 +114,7 @@ int main(int argc, const char* argv[])
 
     printf("[Host]: Setting up the http server.\n");
 
-    ret = set_up_server(enclave, &ret, server_port_untrusted, c_private_key, len_private_key, c_certificate, len_certificate, keep_server_up);
+    ret = set_up_server(enclave, &ret, server_port_untrusted, keep_server_up);
     if (ret!=0)
     {
         printf("[Host]: set_up_server failed.\n");

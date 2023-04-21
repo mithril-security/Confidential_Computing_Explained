@@ -17,26 +17,20 @@
 #include <netdb.h>
 #include <sys/types.h>
 
-#include <mbedtls/certs.h>
-#include <mbedtls/ctr_drbg.h>
-#include <mbedtls/entropy.h>
-#include <mbedtls/error.h>
-#include <mbedtls/net_sockets.h>
-#include <mbedtls/pk.h>
-#include <mbedtls/platform.h>
-#include <mbedtls/rsa.h>
-#include <mbedtls/ssl.h>
-#include <mbedtls/ssl_cache.h>
-#include <mbedtls/x509.h>
+
 #include <sys/epoll.h>
 #include<fcntl.h>
 
 #include "../mongoose/mongoose.h"
-#include "mbedtls/config.h"
+
 
 
 #include "kms_t.h"
 #include "trace.h"
+
+#include "generation/aes_genkey.cpp"
+#include "generation/rsa_genkey.cpp"
+
 
 const char* certificate = "-----BEGIN CERTIFICATE-----\n" \
 "MIIDazCCAlOgAwIBAgIUSncGJpHel3efzqcCSgKGmIKxKYMwDQYJKoZIhvcNAQEL\n" \
@@ -121,20 +115,6 @@ exit:
     return result;
 }
 
-static void fn(struct mg_connection *c, int ev, void *ev_data, void *fn_data) {
-  if (ev == MG_EV_HTTP_MSG) {
-    struct mg_http_message *hm = (struct mg_http_message *) ev_data;
-    if (mg_http_match_uri(hm, "/api/")) {              // On /api/hello requests,
-      mg_http_reply(c, 200, "", "{%m:%d}\n",
-                    mg_print_esc, 0, "status", 1);          // Send dynamic JSON response
-    } else {                                                // For all other URIs,
-      struct mg_http_serve_opts opts = {.root_dir = "."};   // Serve files
-      mg_http_serve_dir(c, hm, &opts);                      // From root_dir
-    }
-  }
-}
-
-
 static void api(struct mg_connection *c, int ev, void *ev_data, void *fn_data)
 {
     if (ev == MG_EV_ACCEPT && fn_data != NULL)
@@ -148,10 +128,21 @@ static void api(struct mg_connection *c, int ev, void *ev_data, void *fn_data)
 
     } else if (ev == MG_EV_HTTP_MSG) {
         struct mg_http_message *hm = (struct mg_http_message *) ev_data;
-        if (mg_http_match_uri(hm, "/api")) {
-            mg_http_reply(c, 200, "", "{\"result\": \"%.*s\"}\n", (int) hm->uri.len,
-                        hm->uri.ptr);
-        } else {
+        if (mg_http_match_uri(hm, "/generate-aes-key")) {
+            unsigned char key;
+            generate_aes_key(&key);
+            TRACE_ENCLAVE("key is equal to : {%s}", &key);
+            mg_http_reply(c, 200, "Content-Type: application/json\r\n", "{%m: \"%s\", %m: \"%s\"}\r\n", mg_print_esc, 0, "aes_key",
+                        &key, mg_print_esc, 0, "encoding", "base64");
+        } else if (mg_http_match_uri(hm, "/generate-rsa-key-pair")) {
+            unsigned char public_key;
+            unsigned char private_key;
+            generate_rsa_key(&public_key, &private_key);
+            TRACE_ENCLAVE("key is equal to : {%s}", &public_key);
+            mg_http_reply(c, 200, "Content-Type: application/json\r\n", "{%m: \"%s\", %m: \"%s\"}\r\n", mg_print_esc, 0, "public_key",
+                        &public_key, mg_print_esc, 0, "encoding", "base64");
+        }
+        else {
             mg_http_reply(c, 200, "", "{\"result\": \"%.*s\"}\n", (int) hm->uri.len,
                         hm->uri.ptr);
         }
@@ -159,7 +150,7 @@ static void api(struct mg_connection *c, int ev, void *ev_data, void *fn_data)
     (void) fn_data;
 }
 
-int set_up_server(const char* server_port_untrusted, const char* private_key, size_t len_private_key, const char* certificate, size_t len_certificate, bool keep_server_up )
+int set_up_server(const char* server_port_untrusted, bool keep_server_up )
 {
     TRACE_ENCLAVE("Entering enclave.\n");
     TRACE_ENCLAVE("Modules loading...\n");

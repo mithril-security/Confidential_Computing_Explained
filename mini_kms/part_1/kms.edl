@@ -11,8 +11,7 @@ enclave {
 #endif
 
     trusted {
-        public int set_up_server([in, string] const char* port, [in, string] const char* private_key, size_t len_private_key,
-         [in, string] const char* certificate, size_t len_certificate, bool keep_server_up);
+        public int set_up_server([in, string] const char* port, bool keep_server_up);
 /* 
         public void initialize_wallet(
             [in, count=password_len] const char* password,
