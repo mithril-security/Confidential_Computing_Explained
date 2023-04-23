@@ -353,10 +353,43 @@ exit:
 
 
 ### HTTPs server
-We first declare the certificate and private key as constant `char`.
+Generate a TLS certificate: To use HTTPS, we first need to generate a TLS (Transport Layer Security) certificate. To generate a self-signed certificate and private key associated with, we use the following command with Openssl.
+```bash 
+$ openssl req -new -x509 -key private.key -out certificate.crt -days 3650
+```
+This will generate a self-signed certificate that is valid for 10 years (3650 days). However, self-signed certificates are not trusted by default, so we will need to manually install the certificate on any client that needs to communicate with the server over HTTPS.
+
+One way to do so is declare the certificate and private key directly as a constant variable.
+
+!!! warning 
+    As it is an HTTPs server for testing purposes, the certificate and private key can be imported, or in our case, copying it in a variable.
+    In a production environment, ***the certificate and private key must be protected and stored securely***.
+
+```C++
+const char* certificate = "-----BEGIN CERTIFICATE-----\n" \
+"...\n"
+"-----END CERTIFICATE-----";
+
+const char*  private_key = "-----BEGIN PRIVATE KEY-----\n" \
+"...\n"
+"-----END PRIVATE KEY-----";
+```
+
+
+Configure the enclave: You need to configure your OpenEnclave application to use HTTPS. This involves setting up the TLS certificate, configuring the TLS context, and configuring the server to listen on a specific port.
+
+Handle incoming requests: Once the server is set up, it can handle incoming requests from clients. When a client sends a request over HTTPS, it establishes a secure connection with the server using the TLS protocol. The server decrypts the request using the TLS certificate, and sends a response back to the client over the secure channel.
+
+Verify the certificate: Before establishing the secure channel, the client verifies that the server's certificate is valid and issued by a trusted CA. This helps ensure that the client is communicating with the intended server, and not an attacker trying to impersonate the server.
+
+Overall, implementing HTTPS with OpenEnclave requires configuring the enclave to use a TLS certificate, setting up the server to listen for incoming requests, and verifying the server's certificate on the client side.
 
 ### functions implementation
+#### AES generation key
 
+#### RSA generation key pair
+
+#### Encryption & decryption
 ## Running and testing our code
 
 ## Next improvements
