@@ -284,6 +284,8 @@ On our file `enclave.cpp` we can go ahead and includes all of these headers:
 The `certificate` and `private_key` character pointers contain example values for an X.509 digital certificate and private key, respectively. These values are used as test data and should be replaced with appropriate values for a given use case.
 
 ```C++
+// enclave.cpp
+
 #include <openenclave/enclave.h>
 #include <openenclave/attestation/attester.h>
 #include <openenclave/attestation/sgx/evidence.h>
@@ -319,6 +321,8 @@ The `certificate` and `private_key` character pointers contain example values fo
 ### Loading the OpenEnclave modules
 While it is necessary to add the network components at compilation time, we still need to load them. The function `load_oe_modules` serves that purpose by calling the loading function for each feature:
 ```C++
+// enclave.cpp
+
 oe_result_t load_oe_modules()
 {
     oe_result_t result = OE_FAILURE;
@@ -353,7 +357,7 @@ exit:
 
 
 ### HTTPs server
-Generate a TLS certificate: To use HTTPS, we first need to generate a TLS (Transport Layer Security) certificate. To generate a self-signed certificate and private key associated with, we use the following command with Openssl.
+- ***Generate a TLS certificate***: To use HTTPS, we first need to generate a TLS (Transport Layer Security) certificate. To generate a self-signed certificate and private key associated with, we use the following command with Openssl.
 ```bash 
 $ openssl req -new -x509 -key private.key -out certificate.crt -days 3650
 ```
@@ -366,26 +370,107 @@ One way to do so is declare the certificate and private key directly as a consta
     In a production environment, ***the certificate and private key must be protected and stored securely***.
 
 ```C++
+// enclave.cpp
+
 const char* certificate = "-----BEGIN CERTIFICATE-----\n" \
-"...\n"
+"...\n" \
 "-----END CERTIFICATE-----";
 
 const char*  private_key = "-----BEGIN PRIVATE KEY-----\n" \
-"...\n"
+"...\n" \ 
 "-----END PRIVATE KEY-----";
 ```
 
+- ***Handle incoming requests***: That goes by implementing a request handler that will be requested when the server is up and listening. 
 
-Configure the enclave: You need to configure your OpenEnclave application to use HTTPS. This involves setting up the TLS certificate, configuring the TLS context, and configuring the server to listen on a specific port.
+Each request route (`/generate-aes-key`, `/generate-rsa-key-pair`...) performs a certain KMS operation: 
+```C++
+// enclave.cpp
+static void api(struct mg_connection *c, int ev, void *ev_data, void *fn_data)
+{
+    if (ev == MG_EV_ACCEPT && fn_data != NULL)
+    {
+        struct mg_tls_opts opts = {
+            .cert = certificate, 
+            .certkey = private_key,
+        };
 
-Handle incoming requests: Once the server is set up, it can handle incoming requests from clients. When a client sends a request over HTTPS, it establishes a secure connection with the server using the TLS protocol. The server decrypts the request using the TLS certificate, and sends a response back to the client over the secure channel.
+        mg_tls_init(c, &opts);
 
-Verify the certificate: Before establishing the secure channel, the client verifies that the server's certificate is valid and issued by a trusted CA. This helps ensure that the client is communicating with the intended server, and not an attacker trying to impersonate the server.
+    } else if (ev == MG_EV_HTTP_MSG) {
+        struct mg_http_message *hm = (struct mg_http_message *) ev_data;
+        if (mg_http_match_uri(hm, "/generate-aes-key")) {
+            unsigned char key;
+            generate_aes_key(&key);
+            TRACE_ENCLAVE("key is equal to : {%s}", &key);
+            mg_http_reply(c, 200, "Content-Type: application/json\r\n", "{%m: \"%s\", %m: \"%s\"}\r\n", mg_print_esc, 0, "aes_key",
+                        &key, mg_print_esc, 0, "encoding", "base64");
+        } else if (mg_http_match_uri(hm, "/generate-rsa-key-pair")) {
+            unsigned char** rsa_public_key;
+            unsigned char** rsa_private_key;
+            generate_rsa_keypair(rsa_public_key, rsa_private_key);
+            TRACE_ENCLAVE("key is equal to : {%x}", &rsa_public_key);
+            mg_http_reply(c, 200, "Content-Type: application/json\r\n", "{%m: \"%s\", %m: \"%s\"}\r\n", mg_print_esc, 0, "public_key",
+                        &rsa_public_key, mg_print_esc, 0, "encoding", "base64");
+        }
+        else {
+            mg_http_reply(c, 200, "", "{\"result\": \"%.*s\"}\n", (int) hm->uri.len,
+                        hm->uri.ptr);
+        }
+    }
+    (void) fn_data;
+}
+```
 
-Overall, implementing HTTPS with OpenEnclave requires configuring the enclave to use a TLS certificate, setting up the server to listen for incoming requests, and verifying the server's certificate on the client side.
+- ***Configuring the listening server***: We achieve so by running the mongoose web server with the certificate and private key precedently defined. Our web server also defines the Ecall that we will be calling to, hence the definition our Ecall: 
+```C++ 
+// enclave.cpp
+int set_up_server(const char* server_port_untrusted, bool keep_server_up)
+{
+    TRACE_ENCLAVE("Entering enclave.\n");
+    TRACE_ENCLAVE("Modules loading...\n");
+
+    if (load_oe_modules() != OE_OK)
+    {
+        printf("loading required Open Enclave modules failed\n");
+        return -1;
+    }
+    TRACE_ENCLAVE("Modules loaded successfully.\n");
+
+
+    struct mg_mgr mgr;
+    mg_mgr_init(&mgr);                                        // Init manager
+    mg_http_listen(&mgr, "https://0.0.0.0:9000", api, &mgr);  
+    // Setup listener
+    TRACE_ENCLAVE("Listening at https://0.0.0.0:9000.\n");
+    for (;;) mg_mgr_poll(&mgr, 1000);                         // Event loop
+    mg_mgr_free(&mgr);  
+
+    return 1;
+}
+```
+
+Having all of this set up, we can go ahead and do some testing: 
+```bash
+# to run the server and enclave
+$ make all && make run
+
+# to test respond with simple requests
+$ curl -k https://127.0.0.1:9000/
+
+```
+You should get a status json response. 
 
 ### functions implementation
+
+In **OpenEnclave**, the `oe_random()` function is used to generate random numbers. This function uses the RDRAND instruction, if available, to generate entropy from the processor's hardware random number generator (RNG). If the RDRAND instruction is not available, the function uses the operating system's random number generator. The `oe_random()` function is used to generate keys, nonces, and other random data in OpenEnclave.
+**Mbedtls** should normally calls to RDRAND instruction when calling to a random number generator. 
+
 #### AES generation key
+While generating an AES 256 bits key, a strong entropy source and seed the DRBG with sufficient entropy to ensure that the generated key must be used. This gives you the property of a cryptographically secure generated key.
+
+
+
 
 #### RSA generation key pair
 
