@@ -5,8 +5,7 @@ _____________________________________
 
 As promised, let's launch our very first enclave! 
 
-To do so, we'll need to set-up the **compilation logic**, code the **HTTPS server host and enclave side**, then **run and test** our program. 
-
+To do so, we'll need to set-up the **compilation logic**, code the **HTTPS server on the enclave side** and launch it with the **host side**.
 ___________________________________
 
 ## Makefiles and compilation logic 
@@ -30,6 +29,10 @@ $ cd mini_kms
 ```
 
 In the `mini_kms` directory, you'll find a `skeleton` directory, and other folders (`part_1`, `part_2`...) where each one correspond to a part of this Confidential Computing course. 
+
+!!! note "Fork"
+
+	You can also fork the repo into you repos to work on your own repo and maybe add all the features that you need. 
 
 !!! note "You already know all this?"
 
@@ -271,11 +274,13 @@ Then we'll write the `main` function that is executed when the program is run. H
 + Finally, it terminates the enclave and returns a status code.
 
 ```C++
+int main(int argc, const char* argv[])
+{
     oe_result_t result;
     int ret = 1;
     uint32_t flags = OE_ENCLAVE_FLAG_DEBUG;
     oe_enclave_t *enclave = NULL;
-    const char* server_port_untrusted = "9001";
+    char* server_port_untrusted = "9001";
     bool keep_server_up = false; 
     
     cout << "[Host]: entering main" << endl;
@@ -291,8 +296,8 @@ Then we'll write the `main` function that is executed when the program is run. H
     //     goto exit;
     // }
 
-    // Enclave creation 
-    enclave = create_enclave(argv[1], flags);
+
+    enclave = create_enclave(argv[1], flags); // Call to create_enclave 
     if (enclave == NULL)
     {
         goto exit;
@@ -300,7 +305,7 @@ Then we'll write the `main` function that is executed when the program is run. H
 
     printf("[Host]: Setting up the http server.\n");
 
-    ret = set_up_server(enclave, &ret, server_port_untrusted, keep_server_up);
+    ret = set_up_server(enclave, &ret, server_port_untrusted, keep_server_up); // call to the ecall set_up_server
     if (ret!=0)
     {
         printf("[Host]: set_up_server failed.\n");
@@ -310,8 +315,9 @@ Then we'll write the `main` function that is executed when the program is run. H
 exit: 
     cout << "[Host]: terminate the enclave" << endl;
     cout << "[Host]: running with exit successfully." << endl;
-    oe_terminate_enclave(enclave);
+    oe_terminate_enclave(enclave); // Ending the enclave and freeing memory
     return ret; 
+}
 ```
 
 ________________________
@@ -334,10 +340,6 @@ $ touch aes_genkey.cpp rsa_genkey.cpp
 ```C++
 // enclave.cpp
 
-#include <openenclave/enclave.h>
-#include <openenclave/attestation/attester.h> 
-#include <openenclave/attestation/sgx/evidence.h>
-#include <openenclave/attestation/sgx/report.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -368,7 +370,7 @@ $ touch aes_genkey.cpp rsa_genkey.cpp
 
 ### Loading the OpenEnclave modules
 
-While it is necessary to add the network components at compilation time, we still need to load them. The function `load_oe_modules` serves that purpose by calling the loading function for each feature:
+While it is necessary to link the network components libraries at compilation time, we still need to load them. The function `load_oe_modules` serves that purpose by calling the loading function for each feature:
 
 ```C++
 // enclave.cpp
@@ -376,6 +378,7 @@ While it is necessary to add the network components at compilation time, we stil
 oe_result_t load_oe_modules()
 {
     oe_result_t result = OE_FAILURE;
+
     // host resolver
     if ((result = oe_load_module_host_resolver()) != OE_OK)
     {
@@ -393,6 +396,7 @@ oe_result_t load_oe_modules()
             oe_result_str(result));
         goto exit;
     }
+
     // epoll 
     if ((result = oe_load_module_host_epoll())!=OE_OK) {
                 printf(
@@ -420,7 +424,7 @@ One way to do so is declare the certificate and private key directly as a consta
 
 !!! warning 
 
-    As it is an HTTPs server for testing purposes, the certificate and private key can be imported, or in our case, copying it in a variable.
+    As it is an HTTPs server for testing purposes, the certificate and private key can be imported, or in our case, copied into variables.
     In a production environment, ***the certificate and private key must be protected and stored securely***.
 
 ```C++
@@ -479,25 +483,26 @@ static void api(struct mg_connection *c, int ev, void *ev_data, void *fn_data)
 - ***Configuring the listening server***: We achieve so by running the mongoose web server with the certificate and private key precedently defined. Our web server also defines the Ecall that we will be calling to, hence the definition our Ecall: 
 ```C++ 
 // enclave.cpp
-int set_up_server(const char* server_port_untrusted, bool keep_server_up)
+int set_up_server(const char* server_port_untrusted, bool keep_server_up )
 {
     TRACE_ENCLAVE("Entering enclave.\n");
     TRACE_ENCLAVE("Modules loading...\n");
-
     if (load_oe_modules() != OE_OK)
     {
         printf("loading required Open Enclave modules failed\n");
         return -1;
     }
     TRACE_ENCLAVE("Modules loaded successfully.\n");
-
-
+    char listening_addr[21];
+    strncat(listening_addr,"https://0.0.0.0:");
+    strncat(listening_addr, server_port_untrusted);
     struct mg_mgr mgr;
     mg_mgr_init(&mgr);                                        // Init manager
-    mg_http_listen(&mgr, "https://0.0.0.0:9000", api, &mgr);  
+    mg_http_listen(&mgr, listening_addr, api, &mgr);  
     // Setup listener
-    TRACE_ENCLAVE("Listening at https://0.0.0.0:9000.\n");
+    TRACE_ENCLAVE("Listening at %s.\n", listening_addr);
     for (;;) mg_mgr_poll(&mgr, 1000);                         // Event loop
+
     mg_mgr_free(&mgr);  
 
     return 1;
@@ -523,13 +528,132 @@ In **OpenEnclave**, the `oe_random()` function is used to generate random number
 #### AES generation key
 While generating an AES 256 bits key, a strong entropy source and seed the DRBG with sufficient entropy to ensure that the generated key must be used. This gives you the property of a cryptographically secure generated key.
 
+An example of code to generate a AES key is the following: 
+```c++
+#include <stdio.h>
+#include <string.h>
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/base64.h"
+#include "../trace.h"
 
+
+void generate_aes_key(unsigned char* key_base64)
+{
+    mbedtls_ctr_drbg_context ctr_drbg;
+    mbedtls_entropy_context entropy;
+
+    char *personalized = "aes gen key miniKMS";
+    int ret; 
+
+    
+    unsigned char key[32]; // variable containing the AES Key 
+
+
+    mbedtls_ctr_drbg_init( &ctr_drbg ); //Initializing DRBG and entropy
+    mbedtls_entropy_init( &entropy );
+
+    if ( ( ret = mbedtls_ctr_drbg_seed( &ctr_drbg, mbedtls_entropy_func, &entropy, 
+    (unsigned char *)personalized, strlen(personalized) ) ) != 0 )
+    {
+        TRACE_ENCLAVE("Failed ! mbedtls_ctr_drbg_seed returned with -0x%04x", -ret);
+    }
+
+    if ( ( ret = mbedtls_ctr_drbg_random(&ctr_drbg, key, 32) ) != 0 ) 
+    {
+        TRACE_ENCLAVE("Failed ! mbedtls_ctr_drbg_random returned with -0x%04x", -ret);
+    }
+    
+    size_t outlen;
+    if ( ( ret = mbedtls_base64_encode(key_base64, 256, &outlen, key, 32*sizeof(unsigned char))) != 0 )
+    {
+                TRACE_ENCLAVE("Failed ! mbedtls_base64_encode returned with -0x%04x", -ret);
+    }
+
+}
+```
 
 
 #### RSA generation key pair
 
+```C++
+
+#include "mbedtls/config.h"
+#include "mbedtls/platform.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#define mbedtls_exit            exit
+#define MBEDTLS_EXIT_SUCCESS    EXIT_SUCCESS
+#define MBEDTLS_EXIT_FAILURE    EXIT_FAILURE
+
+
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/bignum.h"
+#include "mbedtls/x509.h"
+#include "mbedtls/rsa.h"
+#include "../trace.h"
+#include <stdio.h>
+#include <string.h>
+
+
+#define KEY_SIZE 2048
+#define EXPONENT 65537
+
+void generate_rsa_keypair(unsigned char* public_key, unsigned char* private_key)
+{
+    mbedtls_pk_context key;
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    const char *pers = "rsa_keygen";
+    int ret;
+
+    // Initialize contexts
+    mbedtls_pk_init(&key);
+    mbedtls_entropy_init(&entropy);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
+
+    // Seed the random number generator
+    if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
+                                     (const unsigned char *) pers, strlen(pers))) != 0) {
+        TRACE_ENCLAVE("Failed to seed the random number generator: %d\n", ret);
+ 
+    }
+    TRACE_ENCLAVE( "Setting up the context...\n" );
+
+
+    // Generate the RSA key pair
+    if ((ret = mbedtls_pk_setup(&key, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA))) != 0) {
+        TRACE_ENCLAVE("Failed to set up the PK context: %d\n", ret);
+
+    }
+
+    TRACE_ENCLAVE( "Generating the RSA key [ %d-bit ]...\n", KEY_SIZE );
+
+    if ((ret = mbedtls_rsa_gen_key(mbedtls_pk_rsa(key), mbedtls_ctr_drbg_random, &ctr_drbg, KEY_SIZE, 65537)) != 0) {
+        TRACE_ENCLAVE("Failed to generate the RSA key pair: %d\n", ret);
+    }
+
+    // Print the public and private keys in PEM format
+    
+    mbedtls_pk_write_pubkey_pem(&key, public_key, 2048 * sizeof(unsigned char));
+
+    mbedtls_pk_write_key_pem(&key, private_key, 2048 * sizeof(unsigned char));
+
+
+    mbedtls_pk_free(&key);
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+    mbedtls_entropy_free(&entropy);
+
+}
+```
+
+
 #### Encryption & decryption
-## Running and testing our code
+
+!!! note "Coming soon"
+    this paragraph is not yet implemented. 
 
 
 <br />
