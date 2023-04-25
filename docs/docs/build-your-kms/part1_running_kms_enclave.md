@@ -530,6 +530,8 @@ While generating an AES 256 bits key, a strong entropy source and seed the DRBG 
 
 An example of code to generate a AES key is the following: 
 ```c++
+// enclave/generation/aes_genkey.cpp
+
 #include <stdio.h>
 #include <string.h>
 #include "mbedtls/entropy.h"
@@ -577,7 +579,7 @@ void generate_aes_key(unsigned char* key_base64)
 #### RSA generation key pair
 
 ```C++
-
+// enclave/generation/rsa_genkey.cpp
 #include "mbedtls/config.h"
 #include "mbedtls/platform.h"
 
