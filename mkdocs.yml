@@ -105,3 +105,4 @@ nav:
     - Installation: "docs/build-your-kms/installation.md"
     - Trusted VS Untrusted: "docs/build-your-kms/trusted-vs-untrusted.md"
     - Implementing calls: "docs/build-your-kms/trusted-vs-untrusted-impl.md"
+    - Running the KMS in the enclave: "docs/build-your-kms/part1_running_kms_enclave.md"
