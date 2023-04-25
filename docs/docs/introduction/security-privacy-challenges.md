@@ -17,7 +17,7 @@ ______________________________________________________
 
 To better understand how data can be exposed to SaaS vendors, let’s take a real-life example.
 
-Imagine you have a hospital wanting to use AI to help doctors be more efficient. Doctors often take voice notes in a rush, then need to transcribe them into writing for later reporting. This takes a lot of time and it could be automated with AI speech-to-text.
+Imagine you have a hospital wanting to use AI to help doctors be more efficient. Doctors often take voice notes in a rush, then need to transcribe them into writing for later reporting. This takes a lot of time and it could be automated with an AI transcribing speech-to-text.
 
 The hospital doesn’t have the expertise, the infrastructure or the time to do so. If they want to implement it, they would turn to external help - for example an AI provided through the SaaS of a startup. This would be beneficial because there would be no cost for onboarding or for maintenance.
 
@@ -27,4 +27,4 @@ This key security flaw often cuts off this type of collaboration from the get go
 
 <br />
 <br />
-[Next :fontawesome-solid-forward-fast:](#){ .md-button .md-button--primary }
+[Next :fontawesome-solid-forward-fast:](./confidential-hardware-garantees.md){ .md-button .md-button--primary }

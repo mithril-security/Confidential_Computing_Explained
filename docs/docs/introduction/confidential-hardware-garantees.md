@@ -1,7 +1,7 @@
 # 🔒 What is Confidential Computing?
 ___________________________________________________
 
-As you might have guessed from the preivous chapter, there is an answer to those security issues and it is **Confidential Computing**! 
+As you might have guessed from the previous chapter, there is an answer to those security issues and it is **Confidential Computing**! 
 
 Our tutorial’s star technology can analyze sensitive data **without ever exposing it in clear**. It does so by using **secure enclaves**.
 
@@ -23,4 +23,4 @@ It’s an exciting time to learn about Confidential Computing! We’re happy to 
 
 <br />
 <br />
-[Build your KMS :fontawesome-solid-door-open:](#){ .md-button .md-button--primary }
+[Build your KMS :fontawesome-solid-door-open:](../build-your-kms/intro-to-kms.md){ .md-button .md-button--primary }
