@@ -56,27 +56,6 @@ oe_enclave_t* create_enclave(const char* enclave_path, uint32_t flags)
     return enclave;
 }
 
-// function for getting the tls certificate and pk to pass on to the server
-// std::string get_file(char* filename)
-// {
-
-//     std::string file_data;
-
-//     std::ifstream file{filename};
-
-//     if(!file){
-//         std::cerr << "Error: "<< filename << " could not be read!\n";
-//     }
-//     while (file) {
-//         std::string input;
-//         getline(file, input);
-//         file_data.append(input);
-//         file_data.append("\n");
-//     }
-//     file_data.append("\0");
-//     return file_data;
-// }
-
 
 int main(int argc, const char* argv[])
 {
@@ -99,10 +78,6 @@ int main(int argc, const char* argv[])
     //     cout << "Usage" << argv[0] << "enclave_image_path [ --simulation ]"  << endl; 
     //     goto exit;
     // }
-
-    // printf("[Host]: Getting certificate and private key for the tls connection.\n");
-    // std::string private_key = get_file("private_key.key");
-    // std::string certificate = get_file("certificate.pem");
 
 
     // Enclave creation 
