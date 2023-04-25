@@ -152,13 +152,16 @@ keys:
 ```
 ### The `host` repo
 
-The Makefile in the `host` repository builds the untrusted host program. The `build` target uses **oeedger8r** to generate interface code from the `kms.edl` file, which defines the interface between the untrusted host program and the trusted Enclave program. It then compiles the host program and links it with the Open Enclave SDK libraries specified by the `LDFLAGS` variable.
+The Makefile in the `host` repository **builds** the *untrusted* **host program**. 
+
+The `build` target uses **oeedger8r** to generate interface code from the `kms.edl` file, which defines the interface between the untrusted host program and the trusted Enclave program. It then compiles the host program and links it with the Open Enclave SDK libraries specified by the `LDFLAGS` variable.
 
 The `clean` target removes all generated files.
 
 The Makefile defines the `CFLAGS`, `LDFLAGS`, and `INCDIR` variables to obtain compiler and linker options from the Open Enclave SDK. It compiles `host.cpp` and `kms_u.c` into object files and links them into a single executable file named `kms_host`.
 
 The `build` target does not build or sign the Enclave program. 
+
 ```makefile
 # miniKMS
 
@@ -180,35 +183,34 @@ build:
 clean:
 	rm -f kms_host host.o kms_u.o kms_u.c kms_u.h kms_args.h
 ```
+
 When run, the `kms_host` executable launches the Enclave and runs it. 
 
-So let's start by writing the Host code that will launch the Enclave and start the server via the Ecall. 
+Now that we know how our project will compile, let's start writing the Host code that will launch the Enclave and start the server via the Ecall. 
 
 ___________________________
 
 ## Host code 
 
-We begin by adding the necessary header files for the host, including `stdio.h` for standard I/O operations, `openenclave/host.h` for creating enclaves, `sys/stat.h` and `sys/types.h` for working with file permissions, `fstream` and `iostream` for working with file streams, and string for working with strings.
-It also includes the header file `"kms_u.h"`.
-
-
+We begin by adding the necessary header files for the host:
 
 ```C++
-#include <stdio.h>
-#include <openenclave/host.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <fstream>
-#include <iostream>
-#include <string>
+#include <stdio.h> /* for standard I/O operations */
+#include <openenclave/host.h> /* for creating enclaves */
+#include <sys/stat.h> /* for working with file permission  */
+#include <sys/types.h> /* same */
+#include <fstream> /* for working with file streams */
+#include <iostream> /* same */
+#include <string> /* for working with strings */
 
-#include "kms_u.h"
+#include "kms_u.h" /* one of the oeedger8r generated files */
 
 using namespace std;
 ```
 
+Then we'll open the `host.cpp` file in the `host`repository and finally start coding our first functions! 
 
-This function checks if the `--simulation` option was passed as a command line argument and returns a boolean value indicating whether or not to run the program in simulation mode.
+We'll begin with `check_simulate_opt`, which will check if the `--simulation` option was passed as a command line argument. It returns a boolean value indicating whether or not to run the program in simulation mode:
 
 
 ```C++
@@ -228,8 +230,7 @@ bool check_simulate_opt(int* argc, const char* argv[])
 }
 ```
 
-
-This function creates an enclave by loading the enclave binary image from the specified `enclave_path` and initializing the enclave with the specified `flags`.
+Then we'll write `create_enclave`, a function that will load the enclave binary image from the specified `enclave_path` and initialize the enclave with the specified `flags`.
 
 ```C++
 oe_enclave_t* create_enclave(const char* enclave_path, uint32_t flags)
@@ -260,7 +261,14 @@ oe_enclave_t* create_enclave(const char* enclave_path, uint32_t flags)
 }
 ```
 
-This is the main function that is executed when the program is run. It first declares and initializes some variables, including a flag for debugging, a pointer to an enclave, and variables to specify the port and whether to keep the server up. It then creates the enclave using the `create_enclave` function and the provided enclave path and flags. If the enclave creation fails, the program jumps to the `exit` label and terminates the program. Otherwise, it sets up the http server using the `set_up_server` function with the enclave, port, and server keep-up variables. If the server setup fails, it also jumps to the `exit` label and terminates the program. Finally, it terminates the enclave and returns a status code.
+Then we'll write the `main` function that is executed when the program is run. Here's how the logic goes:
+
++ First, it declares and initializes some variables, including a flag for debugging, a pointer to an enclave, and variables to specify the port and whether to keep the server up.
++ It creates the enclave using the `create_enclave` function and the provided enclave path and flags. 
++ If the enclave creation fails, the program jumps to the `exit` label and terminates the program. 
++ Otherwise, it sets up the http server using the `set_up_server` function with the enclave, port, and server keep-up variables. 
++ If the server setup fails, it also jumps to the `exit` label and terminates the program. 
++ Finally, it terminates the enclave and returns a status code.
 
 ```C++
     oe_result_t result;
@@ -310,30 +318,24 @@ ________________________
 
 ## Enclave code 
 
-This is a C/C++ code snippet that includes several header files and defines two character pointers `certificate` and `private_key`. 
+The enclave code will be the core of the KMS. To get it started, we'll first write the following C/C++ code snippet that includes several header files and defines two character pointers `certificate` and `private_key`. 
 
-The enclave code will be the core of the KMS. 
-Let's start by importing the necessary headers to run our enclave: 
-- `openenclave/enclave.h`: contains Open Enclave SDK APIs for creating and managing Enclaves
-- `stdlib.h`, `string.h`, `sys/socket.h`, `arpa/inet.h`, `errno.h`, `netinet/in.h`, `stdarg.h`, `stdbool.h`, `stdio.h`, `unistd.h`, `netdb.h`, `sys/types.h`, `fcntl.h`, and `sys/epoll.h`: standard C/C++ libraries and headers for working with sockets, files, and I/O operations, as well as error handling and formatting.
+Open the `enclave.cpp` file in the `enclave` repository and start by importing the necessary headers for the functions: 
 
-In addition, the code also includes C++ files `aes_genkey.cpp` and `rsa_genkey.cpp` that we will implement next for our KMS functions.
++ `openenclave/enclave.h`: contains Open Enclave SDK APIs for creating and managing Enclaves
++ `stdlib.h`, `string.h`, `sys/socket.h`, `arpa/inet.h`, `errno.h`, `netinet/in.h`, `stdarg.h`, `stdbool.h`, `stdio.h`, `unistd.h`, `netdb.h`, `sys/types.h`, `fcntl.h`, and `sys/epoll.h`: standard C/C++ libraries and headers for working with sockets, files, and I/O operations, as well as error handling and formatting.
 
-let's start by creating those files :
+We'll also need the C++ files `aes_genkey.cpp` and `rsa_genkey.cpp` which will hold our future KMS functions for key generation. Let's create them:
+
 ```bash 
 $ touch aes_genkey.cpp rsa_genkey.cpp
 ```
-
-On our file `enclave.cpp` we can go ahead and includes all of these headers:
-
-
-The `certificate` and `private_key` character pointers contain example values for an X.509 digital certificate and private key, respectively. These values are used as test data and should be replaced with appropriate values for a given use case.
 
 ```C++
 // enclave.cpp
 
 #include <openenclave/enclave.h>
-#include <openenclave/attestation/attester.h>
+#include <openenclave/attestation/attester.h> 
 #include <openenclave/attestation/sgx/evidence.h>
 #include <openenclave/attestation/sgx/report.h>
 #include <stdlib.h>
@@ -351,7 +353,7 @@ The `certificate` and `private_key` character pointers contain example values fo
 
 
 #include <sys/epoll.h>
-#include<fcntl.h>
+#include <fcntl.h>
 
 #include "../mongoose/mongoose.h"
 
@@ -367,6 +369,7 @@ The `certificate` and `private_key` character pointers contain example values fo
 ### Loading the OpenEnclave modules
 
 While it is necessary to add the network components at compilation time, we still need to load them. The function `load_oe_modules` serves that purpose by calling the loading function for each feature:
+
 ```C++
 // enclave.cpp
 
@@ -405,9 +408,12 @@ exit:
 ### HTTPs server
 
 - ***Generate a TLS certificate***: To use HTTPS, we first need to generate a TLS (Transport Layer Security) certificate. To generate a self-signed certificate and private key associated with, we use the following command with Openssl.
+
 ```bash 
 $ openssl req -new -x509 -key private.key -out certificate.crt -days 3650
 ```
+The `certificate` and `private_key` character pointers contain example values for an X.509 digital certificate and private key, respectively. These values are used as test data and should be replaced with appropriate values for a given use case.
+
 This will generate a self-signed certificate that is valid for 10 years (3650 days). However, self-signed certificates are not trusted by default, so we will need to manually install the certificate on any client that needs to communicate with the server over HTTPS.
 
 One way to do so is declare the certificate and private key directly as a constant variable.
