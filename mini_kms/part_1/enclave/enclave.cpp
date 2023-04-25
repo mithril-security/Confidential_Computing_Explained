@@ -1,9 +1,9 @@
 
 
-#include <openenclave/enclave.h>
-#include <openenclave/attestation/attester.h>
-#include <openenclave/attestation/sgx/evidence.h>
-#include <openenclave/attestation/sgx/report.h>
+// #include <openenclave/enclave.h>
+// #include <openenclave/attestation/attester.h>
+// #include <openenclave/attestation/sgx/evidence.h>
+// #include <openenclave/attestation/sgx/report.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -32,7 +32,7 @@
 #include "generation/rsa_genkey.cpp"
 
 
-const char* certificate = "-----BEGIN CERTIFICATE-----\n" \
+const char* CERTIFICATE = "-----BEGIN CERTIFICATE-----\n" \
 "MIIDazCCAlOgAwIBAgIUSncGJpHel3efzqcCSgKGmIKxKYMwDQYJKoZIhvcNAQEL\n" \
 "BQAwRTELMAkGA1UEBhMCQVUxEzARBgNVBAgMClNvbWUtU3RhdGUxITAfBgNVBAoM\n" \
 "GEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yMzA0MTIwNzIyMzVaFw0yNDA0\n" \
@@ -54,7 +54,7 @@ const char* certificate = "-----BEGIN CERTIFICATE-----\n" \
 "Jpe/k9J2P3ofjGrLtmzb\n" \
 "-----END CERTIFICATE-----";
 
-const char*  private_key = "-----BEGIN PRIVATE KEY-----\n" \
+const char*  PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\n" \
 "MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQCXoWsB9MFYdL61\n" \
 "FqH3RYaZhtFMhU/Aog0nf6bTPZyoqUBD8fqU8Bu1VBEJv8Eyyr3wrug7gguUxzzl\n" \
 "qnBYIkw3iPLsE4BPkawb5jhMojrCCVyg3JAQiknztjFHhUI2IwGy8kQLB0kWhSaj\n" \
@@ -84,8 +84,7 @@ const char*  private_key = "-----BEGIN PRIVATE KEY-----\n" \
 "-----END PRIVATE KEY-----";
 
 // Explicitly enabling features 
-// This is essential to use the different usual 
-// syscall or sockets and file descriptors
+
 oe_result_t load_oe_modules()
 {
     oe_result_t result = OE_FAILURE;
@@ -120,8 +119,8 @@ static void api(struct mg_connection *c, int ev, void *ev_data, void *fn_data)
     if (ev == MG_EV_ACCEPT && fn_data != NULL)
     {
         struct mg_tls_opts opts = {
-            .cert = certificate, 
-            .certkey = private_key,
+            .cert = CERTIFICATE, 
+            .certkey = PRIVATE_KEY,
         };
 
         mg_tls_init(c, &opts);
@@ -129,18 +128,39 @@ static void api(struct mg_connection *c, int ev, void *ev_data, void *fn_data)
     } else if (ev == MG_EV_HTTP_MSG) {
         struct mg_http_message *hm = (struct mg_http_message *) ev_data;
         if (mg_http_match_uri(hm, "/generate-aes-key")) {
-            unsigned char key;
-            generate_aes_key(&key);
-            TRACE_ENCLAVE("key is equal to : {%s}", &key);
+            unsigned char *key; 
+            key = (unsigned char*)malloc( 32 * sizeof(unsigned char) );
+
+            generate_aes_key(key);
+            
+            TRACE_ENCLAVE("key is equal to : {%s}", key);
             mg_http_reply(c, 200, "Content-Type: application/json\r\n", "{%m: \"%s\", %m: \"%s\"}\r\n", mg_print_esc, 0, "aes_key",
-                        &key, mg_print_esc, 0, "encoding", "base64");
+                        key, mg_print_esc, 0, "encoding", "base64");
+            
+            key = NULL; 
+            free(key);
         } else if (mg_http_match_uri(hm, "/generate-rsa-key-pair")) {
-            unsigned char** rsa_public_key;
-            unsigned char** rsa_private_key;
+            unsigned char *rsa_public_key = NULL;
+            rsa_public_key = (unsigned char*)malloc( 2048 * sizeof(unsigned char) );
+            unsigned char *rsa_private_key = NULL;
+            rsa_private_key = (unsigned char*)malloc( 2048 * sizeof(unsigned char) );
+
             generate_rsa_keypair(rsa_public_key, rsa_private_key);
-            TRACE_ENCLAVE("key is equal to : {%x}", &rsa_public_key);
-            mg_http_reply(c, 200, "Content-Type: application/json\r\n", "{%m: \"%s\", %m: \"%s\"}\r\n", mg_print_esc, 0, "public_key",
-                        &rsa_public_key, mg_print_esc, 0, "encoding", "base64");
+
+            TRACE_ENCLAVE("key pointer is equal to : {%p}", &rsa_public_key);
+            TRACE_ENCLAVE("public key  is equal to : {%s}", rsa_public_key);
+            // TRACE_ENCLAVE("private key  is equal to : {%s}", rsa_private_key);
+                TRACE_ENCLAVE("private key  is equal to : {%s}", rsa_private_key);
+
+            mg_http_reply(c, 200, "Content-Type: application/json\r\n", "{%m: \"%s\", %m: \"%s\", %m: \"%s\"}\r\n", mg_print_esc, 0, "public_key",
+                        rsa_public_key,  mg_print_esc, 0, "private_key",
+                        rsa_private_key, mg_print_esc, 0, "encoding", "plaintext");
+            
+            // freeing the variables 
+            rsa_public_key = NULL;
+            free(rsa_public_key);
+            rsa_private_key = NULL;
+            free(rsa_public_key);
         }
         else {
             mg_http_reply(c, 200, "", "{\"result\": \"%.*s\"}\n", (int) hm->uri.len,
@@ -160,8 +180,6 @@ int set_up_server(const char* server_port_untrusted, bool keep_server_up )
         return -1;
     }
     TRACE_ENCLAVE("Modules loaded successfully.\n");
-
-    // ------------------------------------------------------------------------
 
     struct mg_mgr mgr;
     mg_mgr_init(&mgr);                                        // Init manager

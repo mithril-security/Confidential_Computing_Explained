@@ -26,7 +26,7 @@
 #define KEY_SIZE 2048
 #define EXPONENT 65537
 
-void generate_rsa_keypair(unsigned char** public_key, unsigned char** private_key)
+void generate_rsa_keypair(unsigned char* public_key, unsigned char* private_key)
 {
     mbedtls_pk_context key;
     mbedtls_entropy_context entropy;
@@ -56,20 +56,18 @@ void generate_rsa_keypair(unsigned char** public_key, unsigned char** private_ke
 
     TRACE_ENCLAVE( "Generating the RSA key [ %d-bit ]...\n", KEY_SIZE );
 
-    if ((ret = mbedtls_rsa_gen_key(mbedtls_pk_rsa(key), mbedtls_ctr_drbg_random, &ctr_drbg, 2048, 65537)) != 0) {
+    if ((ret = mbedtls_rsa_gen_key(mbedtls_pk_rsa(key), mbedtls_ctr_drbg_random, &ctr_drbg, KEY_SIZE, 65537)) != 0) {
         TRACE_ENCLAVE("Failed to generate the RSA key pair: %d\n", ret);
     }
     TRACE_ENCLAVE( "Generated\n");
 
     // Print the public and private keys in PEM format
-    unsigned char public_keybuf[4096];
-    unsigned char private_keybuf[4096];
-    mbedtls_pk_write_pubkey_pem(&key, public_keybuf, sizeof(public_keybuf));
-    *public_key = public_keybuf; 
-    TRACE_ENCLAVE("Public key:\n%s\n", public_keybuf);
-    mbedtls_pk_write_key_pem(&key, private_keybuf, sizeof(private_keybuf));
-    TRACE_ENCLAVE("Private key:\n%s\n", private_keybuf);
-    // *private_key = private_keybuf;
+
+    mbedtls_pk_write_pubkey_pem(&key, public_key, 2048 * sizeof(unsigned char));
+    TRACE_ENCLAVE("Public key:\n%p\n", public_key);
+
+    mbedtls_pk_write_key_pem(&key, private_key, 2048 * sizeof(unsigned char));
+
 
     mbedtls_pk_free(&key);
     mbedtls_ctr_drbg_free(&ctr_drbg);

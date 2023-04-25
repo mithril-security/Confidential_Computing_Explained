@@ -33,7 +33,7 @@ void generate_aes_key(unsigned char* key_base64)
     }
     
     size_t outlen;
-    if ( ( ret = mbedtls_base64_encode(key_base64, 256, &outlen, key, 32*sizeof(char))) != 0 )
+    if ( ( ret = mbedtls_base64_encode(key_base64, 256, &outlen, key, 32*sizeof(unsigned char))) != 0 )
     {
                 TRACE_ENCLAVE("Failed ! mbedtls_base64_encode returned with -0x%04x", -ret);
     }
