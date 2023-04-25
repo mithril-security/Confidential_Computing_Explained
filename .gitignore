@@ -1,6 +1,7 @@
 ./mini_kms/part_1/certificate.pem
 mini_kms/part_1/certificate.pem
 mini_kms/part_1/enclave/enclave.o
+mini_kms/part_1/enclave/enclave
 mini_kms/part_1/enclave/enclave.signed
 mini_kms/part_1/enclave/kms_args.h
 mini_kms/part_1/enclave/kms_t.c
