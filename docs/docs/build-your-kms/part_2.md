@@ -1,6 +1,11 @@
 # Part 2 : Adding the remote attestation to our KMS code
 
+
+
+## Some explanation and theory
 Remote attestation is a security mechanism that enables a remote entity to verify the integrity and authenticity of a system or application running on another machine. This mechanism can be used to ensure that a system or application is running in a trusted environment and has not been tampered with by a malicious attacker.
+
+In Intel SGX, 
 
 Open Enclave is an open-source project that provides a platform for building secure and confidential computing environments. In this tutorial, we will explore how to use Open Enclave to perform remote attestation.
 
