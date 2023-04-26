@@ -198,6 +198,7 @@ ___________________________
 We begin by adding the necessary header files for the host:
 
 ```C++
+// host/host.cpp
 #include <stdio.h> /* for standard I/O operations */
 #include <openenclave/host.h> /* for creating enclaves */
 #include <sys/stat.h> /* for working with file permission  */
@@ -217,6 +218,7 @@ We'll begin with `check_simulate_opt`, which will check if the `--simulation` op
 
 
 ```C++
+// host/host.cpp
 bool check_simulate_opt(int* argc, const char* argv[])
 {
     for (int i=0; i<*argc; i++)
@@ -236,6 +238,7 @@ bool check_simulate_opt(int* argc, const char* argv[])
 Then we'll write `create_enclave`, a function that will load the enclave binary image from the specified `enclave_path` and initialize the enclave with the specified `flags`.
 
 ```C++
+// host/host.cpp
 oe_enclave_t* create_enclave(const char* enclave_path, uint32_t flags)
 {
     oe_enclave_t* enclave = NULL;
@@ -274,6 +277,7 @@ Then we'll write the `main` function that is executed when the program is run. H
 + Finally, it terminates the enclave and returns a status code.
 
 ```C++
+// host/host.cpp
 int main(int argc, const char* argv[])
 {
     oe_result_t result;
@@ -449,8 +453,8 @@ static void api(struct mg_connection *c, int ev, void *ev_data, void *fn_data)
     if (ev == MG_EV_ACCEPT && fn_data != NULL)
     {
         struct mg_tls_opts opts = {
-            .cert = certificate, 
-            .certkey = private_key,
+            .cert = CERTIFICATE, 
+            .certkey = PRIVATE_KEY,
         };
 
         mg_tls_init(c, &opts);
@@ -458,20 +462,42 @@ static void api(struct mg_connection *c, int ev, void *ev_data, void *fn_data)
     } else if (ev == MG_EV_HTTP_MSG) {
         struct mg_http_message *hm = (struct mg_http_message *) ev_data;
         if (mg_http_match_uri(hm, "/generate-aes-key")) {
-            unsigned char key;
-            generate_aes_key(&key);
-            TRACE_ENCLAVE("key is equal to : {%s}", &key);
+            unsigned char *key; 
+            key = (unsigned char*)malloc( 32 * sizeof(unsigned char) );
+
+            generate_aes_key(key);
+            
+            TRACE_ENCLAVE("key is equal to : {%s}", key);
             mg_http_reply(c, 200, "Content-Type: application/json\r\n", "{%m: \"%s\", %m: \"%s\"}\r\n", mg_print_esc, 0, "aes_key",
-                        &key, mg_print_esc, 0, "encoding", "base64");
+                        key, mg_print_esc, 0, "encoding", "base64");
+            
+            key = NULL; 
+            free(key);
         } else if (mg_http_match_uri(hm, "/generate-rsa-key-pair")) {
-            unsigned char** rsa_public_key;
-            unsigned char** rsa_private_key;
+            unsigned char *rsa_public_key = NULL;
+            rsa_public_key = (unsigned char*)malloc( 2048 * sizeof(unsigned char) );
+            unsigned char *rsa_private_key = NULL;
+            rsa_private_key = (unsigned char*)malloc( 2048 * sizeof(unsigned char) );
+
             generate_rsa_keypair(rsa_public_key, rsa_private_key);
-            TRACE_ENCLAVE("key is equal to : {%x}", &rsa_public_key);
-            mg_http_reply(c, 200, "Content-Type: application/json\r\n", "{%m: \"%s\", %m: \"%s\"}\r\n", mg_print_esc, 0, "public_key",
-                        &rsa_public_key, mg_print_esc, 0, "encoding", "base64");
+
+            TRACE_ENCLAVE("key pointer is equal to : {%p}", &rsa_public_key);
+            TRACE_ENCLAVE("public key  is equal to : {%s}", rsa_public_key);
+            // TRACE_ENCLAVE("private key  is equal to : {%s}", rsa_private_key);
+                TRACE_ENCLAVE("private key  is equal to : {%s}", rsa_private_key);
+
+            mg_http_reply(c, 200, "Content-Type: application/json\r\n", "{%m: \"%s\", %m: \"%s\", %m: \"%s\"}\r\n", mg_print_esc, 0, "public_key",
+                        rsa_public_key,  mg_print_esc, 0, "private_key",
+                        rsa_private_key, mg_print_esc, 0, "encoding", "plaintext");
+            
+            // freeing the variables 
+            rsa_public_key = NULL;
+            free(rsa_public_key);
+            rsa_private_key = NULL;
+            free(rsa_public_key);
         }
         else {
+            TRACE_ENCLAVE("request");
             mg_http_reply(c, 200, "", "{\"result\": \"%.*s\"}\n", (int) hm->uri.len,
                         hm->uri.ptr);
         }
