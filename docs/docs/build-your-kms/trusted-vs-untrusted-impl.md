@@ -175,4 +175,4 @@ Those proxy files define all the imported Ecall and Ocall, as well as those that
 In the next chapter, we will begin to write the HTTPS server and our KMS. We'll also launch our first enclave! 
 <br />
 <br />
-[Next Chapter Under Construction :fontawesome-solid-hammer:](./trusted-vs-untrusted-impl.md){ .md-button .md-button--primary }
+[Part 1 :fontawesome-solid-forward-fast:](./part1_running_kms_enclave.md){ .md-button .md-button--primary }
