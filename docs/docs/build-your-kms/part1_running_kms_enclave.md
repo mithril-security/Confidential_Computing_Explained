@@ -32,7 +32,7 @@ In the `mini_kms` directory, you'll find a `skeleton` directory, and other folde
 
 !!! note "Fork"
 
-	You can also fork the repo into you repos to work on your own repo and maybe add all the features that you need. 
+	You can also fork the repo into your projects to work on your own repo and maybe add all the features that you need. 
 
 !!! note "You already know all this?"
 
@@ -61,11 +61,12 @@ skeleton/
 ```
 
 
-### The `enclave` repo
+### The `enclave` folder
 
-The Makefile in the `enclave` repository specifies rules for **building an Enclave program** using the Open Enclave SDK (Software Development Kit), and **signing the program** using its **oesign** tool.
+The Makefile in the `enclave` folder specifies rules for **building an Enclave program** using the Open Enclave SDK (Software Development Kit), and **signing the program** using its **oesign** tool.
 
-In the spirit of not wasting time on configuration not relevant to this tutorial (and avoiding torture), we will use a C embedded web server library called **Mongoose** to help us build the HTTPS server. To install it, run the following commands from the root of the skeleton folder: 
+In the spirit of not wasting time on configuration not relevant to this tutorial (and avoiding torture), we will use a C embedded web server library called **Mongoose** to help us build the HTTPS server. We chose this library for it's simplicity and because it's works well with the crypto library we are using **Mbedtls** (**Mongoose** is also simple to use and well maintained). 
+To install it, run the following commands from the root of the skeleton folder: 
 
 ```bash
 $ cd skeleton/ && git clone https://github.com/cesanta/mongoose.git
@@ -153,9 +154,9 @@ keys:
 	openssl genrsa -out private.pem -3 3072
 	openssl rsa -in private.pem -pubout -out public.pem
 ```
-### The `host` repo
+### The `host` folder
 
-The Makefile in the `host` repository **builds** the *untrusted* **host program**. 
+The Makefile in the `host` folder **builds** the *untrusted* **host program**. 
 
 The `build` target uses **oeedger8r** to generate interface code from the `kms.edl` file, which defines the interface between the untrusted host program and the trusted Enclave program. It then compiles the host program and links it with the Open Enclave SDK libraries specified by the `LDFLAGS` variable.
 
@@ -506,7 +507,8 @@ static void api(struct mg_connection *c, int ev, void *ev_data, void *fn_data)
 }
 ```
 
-- ***Configuring the listening server***: We achieve so by running the mongoose web server with the certificate and private key precedently defined. Our web server also defines the Ecall that we will be calling to, hence the definition our Ecall: 
+- ***Configuring the listening server***: We achieve so by running the mongoose web server with the certificate and private key precedently defined. 
+Our web server also defines the Ecall that we will be calling to, hence the definition our Ecall: 
 ```C++ 
 // enclave.cpp
 int set_up_server(const char* server_port_untrusted, bool keep_server_up )
