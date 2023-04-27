@@ -192,6 +192,13 @@ When run, the `kms_host` executable launches the Enclave and runs it.
 
 Now that we know how our project will compile, let's start writing the Host code that will launch the Enclave and start the server via the Ecall. 
 
+### Makefile commands 
+To run the enclave and the host, all you need to do is, 
+
+- Verify that all the libraries and name are correctly written on the makefiles. 
+- run `make all` to clean and build. 
+- run `make run` to run the host binary that will launch the enclave (or `make run simulate` for simulation mode).
+
 ___________________________
 
 ## Host code 
