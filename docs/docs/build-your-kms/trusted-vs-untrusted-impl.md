@@ -71,10 +71,8 @@ ___________________________________
 
 To **set up the HTTPS server and run it**, we'll **implement an Enclave Call (Ecall)**! 
 
-Our HTTPS server is self-signed, which means that we will have to pass four arguments to the Ecall: 
+Our HTTPS server is self-signed, which means that we will have to pass two arguments to the Ecall: 
 
-+ **a private key**,
-+ an **associated certificate** that will be used inside the enclave,
 + the **connection port**,
 + and a boolean specifying to **keep the connection alive**. 
 
@@ -90,8 +88,6 @@ enclave {
     trusted {
         public int set_up_server(
             [in, string] const char* port, 
-            [in, string] const char* private_key, size_t len_private_key,
-            [in, string] const char* certificate, size_t len_certificate, 
             bool keep_server_up
         );
     };
@@ -123,8 +119,6 @@ Next comes the **trusted section**, where we write our Ecall:
 	trusted {
 			public int set_up_server(
 				[in, string] const char* port, 
-				[in, string] const char* private_key, size_t len_private_key,
-				[in, string] const char* certificate, size_t len_certificate, 
 				bool keep_server_up
 			);
 		};
@@ -133,11 +127,9 @@ Next comes the **trusted section**, where we write our Ecall:
 We define the Ecall as `set_up_server` with the four arguments we detailled earlier : 
 
 + a **string** representing the server's **port** (boundary `[in]`). 
-+ a **string** representing the **private key** (boundary `[in]`) and the size associated with it.
-+ a **string** representing the **certificate** (boundary `[in]`) and the size associated with it. 
 + a **boolean** to **keep the server up**. 
 
-The boundary is `in` because we only need to read them.
+The boundary is `in` because we only need to read the argument.
 
 !!! note
 
