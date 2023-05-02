@@ -12,7 +12,7 @@ using namespace std;
 
 
 
-// Simulation mode 
+// Simulation mode : Doesn't work with Remote Attestation, need of real hardward
 bool check_simulate_opt(int* argc, const char* argv[])
 {
     for (int i=0; i<*argc; i++)
@@ -64,7 +64,15 @@ int main(int argc, const char* argv[])
     uint32_t flags = OE_ENCLAVE_FLAG_DEBUG;
     oe_enclave_t *enclave = NULL;
     char* server_port_untrusted = "8000";
+    char* server_port_trusted = "8001";
     bool keep_server_up = false; 
+
+    // Remote attestation variables
+    uint8_t *pem_key = NULL;
+    size_t key_size = NULL;
+    uint8_t *report = NULL;
+    size_t report_size = NULL; 
+
     
     cout << "[Host]: entering main" << endl;
 
@@ -86,10 +94,25 @@ int main(int argc, const char* argv[])
     {
         goto exit;
     }
+    // Getting the claims for the remote attestation from the enclave
+    printf("[Host]: Requesting the report and all the proofs required to establish the Remote Attestation.\n");
 
+    ret = get_report(enclave, &ret, &pem_key, &key_size, &report, &report_size);
+
+
+    // Setting up the untrusted server
     printf("[Host]: Setting up the http server.\n");
 
     ret = set_up_server(enclave, &ret, server_port_untrusted, keep_server_up);
+    if (ret!=0)
+    {
+        printf("[Host]: set_up_server failed.\n");
+        goto exit;
+    }
+
+    // Setting up the trusted server that must be done after the remote attestation 
+    // it will give access to the operations around our KMS 
+    ret = set_up_trusted_server(enclave, &ret, server_port_trusted);
     if (ret!=0)
     {
         printf("[Host]: set_up_server failed.\n");

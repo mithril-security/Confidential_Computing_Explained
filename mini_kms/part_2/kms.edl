@@ -9,9 +9,22 @@ enclave {
 #ifdef EDL_USE_HOST_ENTROPY
     from "openenclave/edl/sgx/entropy.edl" import *;
 #endif
+    from "openenclave/edl/attestation.edl" import *;
 
     trusted {
+        // Untrusted port
         public int set_up_server([in, string] const char* port, bool keep_server_up);
+        
+        // Extract the enclave's report and public key for the remote attestation
+        public int get_report(
+            [out] uint8_t **pem_key,
+            [out] size_t *key_size, 
+            [out] uint8_t **report, 
+            [out] size_t *report_size
+        );
+
+        // Trusted port 
+        public int set_up_trusted_server([in, string] const char* port);
     };
 /*
     untrusted {
