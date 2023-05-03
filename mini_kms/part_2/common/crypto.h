@@ -12,7 +12,7 @@
 #include <mbedtls/pk.h>
 #include <mbedtls/rsa.h>
 #include <mbedtls/sha256.h>
-#include "log.h"
+#include "../enclave/trace.h"
 
 #define PUBLIC_KEY_SIZE 512
 

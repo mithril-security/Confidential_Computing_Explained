@@ -22,8 +22,8 @@
 #include<fcntl.h>
 
 #include "../mongoose/mongoose.h"
-
-
+#include "../common/dispatcher.h"
+#include "../common/dispatcher.cpp"
 
 #include "kms_t.h"
 #include "trace.h"
@@ -82,6 +82,10 @@ const char*  PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\n" \
 "goUDEg/BxfwEqsg7AOEMSTRxaOUXCSdOimumP0dD38C4zvO+imF9BzzGmMpstBst\n" \
 "5XSIkvovaR8nRBYBV/aF/kMyPQ==\n" \
 "-----END PRIVATE KEY-----";
+
+static ecall_dispatcher dispatcher("Enclave1");
+const char* enclave_name = "Enclave1";
+
 
 // Explicitly enabling features 
 
@@ -226,8 +230,11 @@ int get_report(uint8_t **pem_key, size_t *key_size, uint8_t **report, size_t *re
     result = oe_attester_initialize();
     TRACE_ENCLAVE("Calling sgx plugin attester.\n");
 
+    TRACE_ENCLAVE("Calling get report and dispatcher\n");
+
+
    
     
     
-    return 1; 
+    return dispatcher.get_remote_report_with_pubkey(pem_key, key_size, report, report_size);
 }

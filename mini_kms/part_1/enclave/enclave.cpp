@@ -19,7 +19,7 @@
 
 
 #include <sys/epoll.h>
-#include<fcntl.h>
+#include <fcntl.h>
 
 #include "../mongoose/mongoose.h"
 
@@ -181,6 +181,7 @@ int set_up_server(const char* server_port_untrusted, bool keep_server_up )
         return -1;
     }
     TRACE_ENCLAVE("Modules loaded successfully.\n");
+    
     char listening_addr[21];
     strncat(listening_addr,"https://0.0.0.0:", 16);
     strncat(listening_addr, server_port_untrusted, 4);

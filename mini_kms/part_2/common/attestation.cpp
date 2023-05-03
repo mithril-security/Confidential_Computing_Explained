@@ -1,7 +1,7 @@
 
 #include "attestation.h"
 #include <string.h>
-#include "log.h"
+#include "../enclave/trace.h"
 
 Attestation::Attestation(Crypto* crypto)
 {
@@ -39,6 +39,7 @@ bool Attestation::generate_report(
     // Both kinds of reports can be verified using the oe_verify_report
     // function.
     result = oe_get_report(
+        OE_REPORT_FLAGS_REMOTE_ATTESTATION,
         sha256, // Store sha256 in report_data field
         sizeof(sha256),
         NULL, // opt_params must be null
