@@ -106,3 +106,4 @@ nav:
     - Trusted VS Untrusted: "docs/build-your-kms/trusted-vs-untrusted.md"
     - Implementing calls: "docs/build-your-kms/trusted-vs-untrusted-impl.md"
     - Running the KMS in the enclave: "docs/build-your-kms/part1_running_kms_enclave.md"
+    - Building the remote attestation: "docs/build-your-kms/part_2.md"
