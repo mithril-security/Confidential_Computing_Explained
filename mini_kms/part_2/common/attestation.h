@@ -13,6 +13,19 @@ class Attestation
   public:
     Attestation(Crypto* crypto);
 
+    /**
+     * Generate evidence for given data
+    */
+   bool generate_attestation_evidence(
+      const oe_uuid_t* format_id, 
+      uint8_t* format_settings, 
+      size_t format_settings_size, 
+      const uint8_t* data, 
+      const size_t data_size, 
+      uint8_t **evidence, 
+      size_t* evidence_size
+   ); 
+
     // Generate a remote report for the given data. The SHA256 digest of the
     // data is stored in the report_data field of the generated remote report.
     bool generate_report(

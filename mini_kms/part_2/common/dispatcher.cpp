@@ -45,6 +45,84 @@ exit:
     return ret;
 }
 
+int ecall_dispatcher::get_evidence_with_pubkey(
+    const oe_uuid_t* format_id, 
+    format_settings_t* format_settings, 
+    pem_key_t* pem_key, 
+    evidence_t* evidence
+)
+{
+    uint8_t pem_public_key[512]; 
+    uint8_t* evidence_buffer = nullptr; 
+    size_t evidence_size = 0; 
+    int ret = 1; 
+
+    TRACE_ENCLAVE("Running Get evidence with pubkey.\n");
+    if (m_initialized == false )
+    {
+        TRACE_ENCLAVE("Ecall_dispatcher initialization failed.\n");
+        goto exit; 
+    }
+
+    m_crypto->retrieve_public_key(pem_public_key); 
+
+    if (m_attestation->generate_attestation_evidence(
+        format_id, 
+        format_settings->buffer, 
+        format_settings->size, 
+        pem_public_key,
+        sizeof(pem_public_key), 
+        &evidence_buffer, 
+        &evidence_size
+    ) == false)
+    {
+        TRACE_ENCLAVE("Error while getting evidence with public key.\n");
+        goto exit; 
+    }
+ evidence->buffer = (uint8_t*)malloc(evidence_size);
+    if (evidence->buffer == nullptr)
+    {
+        ret = OE_OUT_OF_MEMORY;
+        TRACE_ENCLAVE("copying evidence_buffer failed, out of memory");
+        goto exit;
+    }
+    memcpy(evidence->buffer, evidence_buffer, evidence_size);
+    evidence->size = evidence_size;
+    oe_free_evidence(evidence_buffer);
+
+    pem_key->buffer = (uint8_t*)malloc(sizeof(pem_public_key));
+    if (pem_key->buffer == nullptr)
+    {
+        ret = OE_OUT_OF_MEMORY;
+        TRACE_ENCLAVE("copying key_buffer failed, out of memory");
+        goto exit;
+    }
+    memcpy(pem_key->buffer, pem_public_key, sizeof(pem_public_key));
+    pem_key->size = sizeof(pem_public_key);
+
+    ret = 0;
+    TRACE_ENCLAVE("get_evidence_with_public_key succeeded");
+
+exit:
+    if (ret != 0)
+    {
+        if (evidence_buffer)
+            oe_free_evidence(evidence_buffer);
+        if (pem_key)
+        {
+            free(pem_key->buffer);
+            pem_key->size = 0;
+        }
+        if (evidence)
+        {
+            free(evidence->buffer);
+            evidence->size = 0;
+        }
+    }
+    return ret;
+}
+
+
 /**
  * Return the public key of this enclave along with the enclave's remote report.
  * The enclave that receives the key will use the remote report to attest this

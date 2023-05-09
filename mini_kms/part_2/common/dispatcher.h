@@ -23,6 +23,13 @@ class ecall_dispatcher
         uint8_t** remote_report,
         size_t* remote_report_size);
 
+    int get_evidence_with_pubkey(
+      const oe_uuid_t* format_id, 
+      format_settings_t* format_settings, 
+      pem_key_t* pem_key, 
+      evidence_t* evidence
+    );
+
   private:
     bool initialize(const char* name);
 };
