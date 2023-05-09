@@ -11,6 +11,32 @@ enclave {
 #endif
     from "openenclave/edl/attestation.edl" import *;
 
+    struct format_settings_t
+    {
+        [size=size] uint8_t* buffer;
+        size_t size;
+    };
+
+    struct pem_key_t
+    {
+        [size=size] uint8_t* buffer;
+        size_t size;
+    };
+
+    struct evidence_t
+    {
+        [size=size] uint8_t* buffer;
+        size_t size;
+    };
+
+    struct message_t
+    {
+        [size=size] uint8_t* data;
+        size_t size;
+    };
+
+
+
     trusted {
         // Untrusted port
         public int set_up_server([in, string] const char* port, bool keep_server_up);

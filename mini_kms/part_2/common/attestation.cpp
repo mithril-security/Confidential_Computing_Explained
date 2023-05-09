@@ -1,8 +1,12 @@
 #include "attestation.h"
+#include <openenclave/attestation/attester.h>
+#include <openenclave/attestation/custom_claims.h>
+#include <openenclave/attestation/verifier.h>
+#include <openenclave/bits/report.h>
 #include <string.h>
 #include "../enclave/trace.h"
 
-Attestation::Attestation(Crypto* crypto, uint8_t* enclave_signer_id)
+Attestation::Attestation(Crypto* crypto)
 {
     m_crypto = crypto;
 }
@@ -15,7 +19,7 @@ bool Attestation::generate_attestation_evidence(
     const uint8_t* data, 
     const size_t data_size, 
     uint8_t **evidence, 
-    size_t evidence_size)
+    size_t *evidence_size)
 {
     bool ret = false; 
     uint8_t hash[32];

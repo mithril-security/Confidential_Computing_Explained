@@ -23,7 +23,7 @@ class Attestation
       const uint8_t* data, 
       const size_t data_size, 
       uint8_t **evidence, 
-      size_t* evidence_size
+      size_t *evidence_size
    ); 
 
     // Generate a remote report for the given data. The SHA256 digest of the

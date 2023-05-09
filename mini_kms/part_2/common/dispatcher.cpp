@@ -1,4 +1,7 @@
 #include "dispatcher.h"
+#include <openenclave/attestation/attester.h>
+#include <openenclave/attestation/sgx/report.h>
+#include <openenclave/attestation/verifier.h>
 #include <openenclave/enclave.h>
 
 #include "crypto.h"

@@ -20,12 +20,12 @@
 
 #include <sys/epoll.h>
 #include <fcntl.h>
-
+#include "kms_t.h"
 #include "../mongoose/mongoose.h"
 #include "../common/dispatcher.h"
 #include "../common/dispatcher.cpp"
 
-#include "kms_t.h"
+
 #include "trace.h"
 
 #include "generation/aes_genkey.cpp"

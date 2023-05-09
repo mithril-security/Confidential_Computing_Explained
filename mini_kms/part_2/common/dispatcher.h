@@ -1,8 +1,13 @@
 #pragma once
+#include <openenclave/attestation/attester.h>
+#include <openenclave/attestation/sgx/report.h>
+#include <openenclave/attestation/verifier.h>
 #include <openenclave/enclave.h>
 #include <string>
 #include "attestation.h"
 #include "crypto.h"
+#include "kms_t.h"
+
 
 using namespace std;
 
