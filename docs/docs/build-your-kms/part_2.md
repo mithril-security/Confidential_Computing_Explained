@@ -65,12 +65,10 @@ $ sudo service aesmd restart
 
 
 ## The evidence generation
-The quote generation process begins by retrieving the report from the enclave. For that purpose, OpenEnclave SDK has an enclave **implementation** that's dedicated. Indeed, the function `oe_get_report` creates a report to be used in atte station (and specifically for our case, remote attestation). This call must be done **inside** the enclave as it is specific to the platform (and each enclave in that sense).
+The evidence generation process begins by retrieving the necessary information from the enclave. For that purpose, OpenEnclave SDK has an enclave **implementation** that's dedicated. 
+Indeed, the function `oe_get_report` creates a report to be used in attestation. This call must be done **inside** the enclave as it is specific to the platform (and each enclave in that sense). 
 
-However, to generate the quote, we must do so from the host. Because in the quote, we also have to add to add information specific to the platform, and hence to generate the generate, the host contacts the quoting enclave with the freshly sent report from the enclave. 
-
-When the quote is generate, it must then be sent to the user for verification. 
-This is achieved through the web server done previously on part 1. 
+But this can also be done through the generation of evidence through `oe_get_evidence`
 
 ### Adding `ecall`s for the remote attestation
 We will be adding two different examples, the first one, will be regarding extracting the report inside the enclave and will be represented by the `get_report` ecall. 
@@ -156,9 +154,10 @@ These 6 files will represent three different object classes :
 So, let's start by trying to add the `get_report` ecall to retrieve the enclave report. 
 
 ### The crypto class object 
-The crypto class object provides functionality for encryption and hashing using the RSA algorithm and SHA-256 hash function. It uses the MbedTLS library for cryptographic operations.
+The crypto class object provides functionality for encryption and hashing using the RSA algorithm and SHA-256 hash function. It uses the MbedTLS library for cryptographic operations. As it is not the purpose of our tutorial, you can copy the directly the files from the repo. But if you want to know more, here is some explanations
 
 ??? "Explanations about the crypto class object"
+
     1. `Crypto::Crypto()` - Constructor method that initializes the crypto module by calling `init_mbedtls()`.
 
     2. `Crypto::~Crypto()` - Destructor method that frees resources allocated by the crypto module by calling `cleanup_mbedtls()`.
@@ -207,15 +206,284 @@ We are going to add an Attestation object. this **Attestation** object will impl
 
 `generate_attestation_evidence` method will generate evidence for attestation, which is a cryptographic proof of the *integrity* and *authenticity* of an enclave. The function takes in several parameters including `format_id`, `format_settings`, `data`, and `data_size`. It first hashes the input data using SHA256. Then, it initializes the attester and plugin by calling `oe_attester_initialize()`. Next, it generates custom claims for the attestation. It serializes the custom claims using `oe_serialize_custom_claims` and generates evidence based on the format selected by the attester using `oe_get_evidence`. Finally, it cleans up and returns a boolean indicating whether the function succeeded or failed.
 
-`generate_report` generates a remote report for the given data. The SHA256 digest of the data is stored in the report_data field of the generated remote report. The function takes in parameters similar to generate_attestation_evidence. It first hashes the input data using SHA256, and then generates a remote report using oe_get_report. It sets the OE_REPORT_FLAGS_REMOTE_ATTESTATION flag to generate a remote report that can be attested remotely by an enclave running on a different platform. Finally, it cleans up and returns a boolean indicating whether the function succeeded or failed.
+```C++
+bool Attestation::generate_attestation_evidence(
+    const oe_uuid_t* format_id, 
+    uint8_t* format_settings, 
+    size_t format_settings_size, 
+    const uint8_t* data, 
+    const size_t data_size, 
+    uint8_t **evidence, 
+    size_t *evidence_size)
+{
+    bool ret = false; 
+    uint8_t hash[32];
+    oe_result_t result = OE_OK; 
+    // custom claims 
+    uint8_t* custom_claims_buffer = nullptr; 
+    size_t custom_claims_buffer_size = 0; 
+    char custom_claim1_name[] = "Event";
+    char custom_claim1_value[] = "Attestation KMS example";
+    char custom_claim2_name[] = "Public key hash";
+
+    oe_claim_t custom_claims[2] = {
+        {
+            .name = custom_claim1_name,
+            .value = (uint8_t*)custom_claim1_value,
+            .value_size = sizeof(custom_claim1_value)
+        },
+        {
+            .name = custom_claim2_name,
+            .value = nullptr,
+            .value_size = 0
+        }
+    };
+
+    if (m_crypto->Sha256(data, data_size, hash) != 0)
+    {
+        TRACE_ENCLAVE("data hashing failed !\n");
+        goto exit; 
+    }
+
+    // The attester is initialized
+    result = oe_attester_initialize();
+    if (result != OE_OK)
+    {
+        TRACE_ENCLAVE("oe_attester_initialize failed !\n");
+        goto exit; 
+    }
+
+    // Adding the Public key's Hash computed 
+    custom_claims[1].value = hash;
+    custom_claims[1].value_size = sizeof(hash);
+
+    TRACE_ENCLAVE("Serializing the custom claims.\n");
+    if (oe_serialize_custom_claims(
+        custom_claims, 
+        2, 
+        &custom_claims_buffer, 
+        &custom_claims_buffer_size
+    ) != OE_OK)
+    {
+        TRACE_ENCLAVE("oe_serialize_custom_claims failed !\n");
+        goto exit;
+    }
+
+    TRACE_ENCLAVE(
+    "serialized custom claims buffer size: %lu", custom_claims_buffer_size);
+
+    // Using the oe_get_evidence function to generate the evidence with the format chosen by the attester
+    result = oe_get_evidence(
+        format_id,
+        0,
+        custom_claims_buffer,
+        custom_claims_buffer_size,
+        format_settings,
+        format_settings_size,
+        evidence,
+        evidence_size,
+        nullptr,
+        0);
+    if (result != OE_OK)
+    {
+        TRACE_ENCLAVE("oe_get_evidence failed.(%s)", oe_result_str(result));
+        goto exit;
+    }
+
+    ret = true;
+    TRACE_ENCLAVE("generate_attestation_evidence succeeded.");
+exit:
+    // Freeing memory and shutting down the attester
+    oe_attester_shutdown();
+    return ret;
+}  
+
+```
 
 
-Before writing the ecall function, we have to make slight changes to the Makefile that must taken into account. 
+On the other hand, `generate_report` generates a remote report for the given data. The SHA256 digest of the data is stored in the `report_data` field of the generated remote report. It first hashes the input data using SHA256, and then generates a remote report using `oe_get_report`. It sets the `OE_REPORT_FLAGS_REMOTE_ATTESTATION` flag to generate a remote report that can be attested remotely by an enclave running on a different platform. Finally, it cleans up and returns a boolean indicating whether the function succeeded or failed.
 
+```c++
+bool Attestation::generate_report(
+    const uint8_t* data,
+    const size_t data_size,
+    uint8_t** remote_report_buf,
+    size_t* remote_report_buf_size)
+{
+    bool ret = false;
+    uint8_t sha256[32];
+    oe_result_t result = OE_OK;
+    uint8_t* temp_buf = NULL;
+
+    if (m_crypto->Sha256(data, data_size, sha256) != 0)
+    {
+        goto exit;
+    }
+
+    result = oe_get_report(
+        OE_REPORT_FLAGS_REMOTE_ATTESTATION,
+        sha256, // Store sha256 in report_data field
+        sizeof(sha256),
+        NULL, // opt_params must be null
+        0,
+        &temp_buf,
+        remote_report_buf_size);
+    if (result != OE_OK)
+    {
+        TRACE_ENCLAVE("oe_get_report failed.");
+        goto exit;
+    }
+    *remote_report_buf = temp_buf;
+    ret = true;
+    TRACE_ENCLAVE("generate_remote_report succeeded.");
+exit:
+    return ret;
+}
+```
+
+### The dispatcher
+The dispatcher uses the attestation and crypto object to be called when our ecalls will be defined. 
+So for each our ecalls, we defined a method that sets up everything for the evidence generation and uses the `get_evidence` function method and a another function for `get_report` method :
+```C++
+class dispatcher
+{
+  private:
+    bool m_initialized;
+    Crypto* m_crypto;
+    Attestation* m_attestation;
+    string m_name;
+
+  public:
+    dispatcher(const char* name);
+    ~dispatcher();
+    int get_remote_report_with_pubkey(
+        uint8_t** pem_key,
+        size_t* key_size,
+        uint8_t** remote_report,
+        size_t* remote_report_size);
+
+    int get_evidence_with_pubkey(
+      const oe_uuid_t* format_id, 
+      format_settings_t* format_settings, 
+      pem_key_t* pem_key, 
+      evidence_t* evidence
+    );
+
+  private:
+    bool initialize(const char* name);
+};
+```
+!!! note "The implementation"
+    you can find an example of the implementation on our [repo](https://github.com/mithril-security/Confidential_Computing_Explained/tree/mini_kms/mini_kms/part_2). 
 
 
 
 ### Changes to the enclave code
-## Collateral 
+Before writing the ecall function, we have to make slight changes to the Makefile that must taken into account. 
+```Makefile
+# enclave/Makefile
 
-## Verification client side 
+include ../config.mk
+
+CRYPTO_LDFLAGS := $(shell pkg-config oeenclave-$(COMPILER) --variable=${OE_CRYPTO_LIB}libs)
+
+ifeq ($(LVI_MITIGATION), ControlFlow)
+    ifeq ($(LVI_MITIGATION_BINDIR),)
+        $(error LVI_MITIGATION_BINDIR is not set)
+    endif
+    # Only run once.
+    ifeq (,$(findstring $(LVI_MITIGATION_BINDIR),$(CC)))
+        CC := $(LVI_MITIGATION_BINDIR)/$(CC)
+    endif
+    COMPILER := $(COMPILER)-lvi-cfg
+    CRYPTO_LDFLAGS := $(shell pkg-config oeenclave-$(COMPILER) --variable=${OE_CRYPTO_LIB}libslvicfg)
+endif
+
+CFLAGS=$(shell pkg-config oeenclave-$(COMPILER) --cflags)
+CXXFLAGS=$(shell pkg-config oeenclave-$(CXX_COMPILER) --cflags) # Added remote attestation
+LDFLAGS=$(shell pkg-config oeenclave-$(CXX_COMPILER) --libs)
+INCDIR=$(shell pkg-config oeenclave-$(COMPILER) --variable=includedir)
+
+all:
+	$(MAKE) build
+	$(MAKE) keys
+	$(MAKE) sign
+# adding the 	$(CXX) -g -c $(CXXFLAGS) -I. -I.. -std=c++11 -DOE_API_VERSION=2 enclave.cpp ../common/attestation.cpp ../common/crypto.cpp ../common/dispatcher.cpp line to add our classes 
+# must be compiled in C++
+build:
+	@ echo "Compilers used: $(CC), $(CXX)"
+	oeedger8r ../kms.edl --trusted \
+		--search-path $(INCDIR) \
+		--search-path $(INCDIR)/openenclave/edl/sgx
+	$(CXX) -g -c $(CXXFLAGS) -I. -I.. -std=c++11 -DOE_API_VERSION=2 enclave.cpp ../common/attestation.cpp ../common/crypto.cpp ../common/dispatcher.cpp 
+	$(CC) -g -c $(CFLAGS) -DOE_API_VERSION=2 kms_t.c -o kms_t.o
+	$(CC) -g -c $(CFLAGS) -DOE_API_VERSION=2 ../mongoose/mongoose.c -lmbedtls -lmbedcrypto -lmbedx509 -D MG_ENABLE_MBEDTLS=1 -o mongoose.o
+	$(CXX) -o enclave kms_t.o mongoose.o enclave.o -D MG_ENABLE_MBEDTLS=1 -loelibcxx -loehostsock -loehostresolver -loehostepoll $(LDFLAGS) $(CRYPTO_LDFLAGS) 
+
+sign:
+	oesign sign -e enclave -c kms.conf -k private.pem
+
+clean:
+	rm -f mongoose.o attestation.o crypto.o dispatcher.o enclave.o enclave enclave.signed private.pem public.pem kms_t.o kms_t.h kms_t.c kms_args.h
+
+keys:
+	openssl genrsa -out private.pem -3 3072
+	openssl rsa -in private.pem -pubout -out public.pem
+
+
+```
+Next we can return to the `enclave.cpp` file and start writing our ecalls : 
+```C++
+int get_report(uint8_t **pem_key, size_t *key_size, uint8_t **report, size_t *report_size){
+    TRACE_ENCLAVE("Entering enclave.\n");
+    TRACE_ENCLAVE("Modules loading...\n");
+    if (load_oe_modules() != OE_OK)
+    {
+        printf("loading required Open Enclave modules failed\n");
+        return -1;
+    }
+    TRACE_ENCLAVE("Modules loaded successfully.\n");
+    TRACE_ENCLAVE("Calling sgx attester init.\n");
+    oe_result_t result = OE_OK;
+    result = oe_attester_initialize();
+    TRACE_ENCLAVE("Calling sgx plugin attester.\n");
+
+    TRACE_ENCLAVE("Calling get report through dispatcher.\n");
+    
+    return dispatcher.get_remote_report_with_pubkey(pem_key, key_size, report, report_size);
+}
+
+int get_evidence_with_pub_key(
+    const oe_uuid_t* format_id,
+    format_settings_t* format_settings,
+    pem_key_t* pem_key,
+    evidence_t* evidence)
+{
+    TRACE_ENCLAVE("Entering enclave.\n");
+    TRACE_ENCLAVE("Modules loading...\n");
+    if (load_oe_modules() != OE_OK)
+    {
+        printf("loading required Open Enclave modules failed\n");
+        return -1;
+    }
+    TRACE_ENCLAVE("Modules loaded successfully.\n");
+    TRACE_ENCLAVE("Running get evidence with public key through dispatcher.\n");
+
+    return dispatcher.get_evidence_with_public_key(
+        format_id, format_settings, pem_key, evidence);
+}
+```
+
+And that's pretty much it for the ecalls. 
+Let's move on to the calling these functions from the host.
+
+### Changes to the Host code
+
+## Verification client side with OE Host Verify Library
+
+The OpenEnclave community also works on verification library. the objective is to use the library to verify the remote reports outside the TEE/Enclave. This will be done in Next, we will be seeing how all of this works using the `oe_verify_remote_report` function that is at our disposal. 
+
+
+<br />
+<br />
+[Next Chapter Under Construction :fontawesome-solid-hammer:](#){ .md-button .md-button--primary }
