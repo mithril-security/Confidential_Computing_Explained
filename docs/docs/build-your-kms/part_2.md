@@ -32,19 +32,14 @@ Good thing for us, we won't have to get in that much detail because OpenEnclave 
 
 ### Attestation on OpenEnclave
 
-Open Enclave is an open-source project that provides a platform for building secure and confidential computing environments. In this tutorial, we will explore how to use Open Enclave to perform remote attestation.
+The **Open Enclave** community tried to develop a way that's more friendly to the Remote attestation procedures (RATS) specifications. This resulted in an attestation API. This API gives a set of functions to generate reports, evidence, and handles all the attestation interface for us to be used. The OpenEnclave SDK uses the functions to get evidence and to verify it. 
 
-Open Enclave maintains an attestation API. This API gives a set of functions to generate reports, quotes, and handles all the attestation interface for us to be use simply.
-
-- `openenclave/enclave.h`: contains Open Enclave SDK APIs for creating and managing Enclaves
-- `openenclave/attestation/attester.h`: provides functions to perform remote attestation and to verify attestation evidence
-- `openenclave/attestation/sgx/evidence.h`: defines structures and functions for attestation evidence, specifically for Intel Software Guard Extensions (SGX) Enclaves
-- `openenclave/attestation/sgx/report.h`: provides functions for generating reports that attest to the current state of an SGX Enclave
+- `openenclave/enclave.h`: contains Open Enclave SDK APIs for creating and managing Enclaves which we've already used.
+- `openenclave/attestation/attester.h`: provides functions to perform remote attestation and to verify attestation evidence, that what we will need for generating the evidence.  
+- `openenclave/attestation/sgx/evidence.h`: defines structures and functions for attestation evidence, specifically for Intel Software Guard Extensions (SGX) Enclaves.
+- `openenclave/attestation/sgx/report.h`: provides functions for generating reports that attest to the current state of an SGX Enclave. 
 
 
-In addition, the code also includes two C++ files `aes_genkey.cpp` and `rsa_genkey.cpp`.
-
-The `certificate` and `private_key` character pointers contain example values for an X.509 digital certificate and private key, respectively. These values are used as test data and should be replaced with appropriate values for a given use case.
 
 ### Verifying that all the services are set-up 
 verifying that aesm service is up and running. 
@@ -77,15 +72,52 @@ However, to generate the quote, we must do so from the host. Because in the quot
 When the quote is generate, it must then be sent to the user for verification. 
 This is achieved through the web server done previously on part 1. 
 
-### Adding an `ecall`
-To get the report from the enclave, we are going to add an `ecall` to our application. 
-So let's change the `kms.edl` by adding the structure of our `get_report` ecall.
-Still in the trusted section, we are going to add the following:
+### Adding `ecall`s for the remote attestation
+We will be adding two different examples, the first one, will be regarding extracting the report inside the enclave and will be represented by the `get_report` ecall. 
+In the second one, we will be presenting the evidence that will 
+So let's change the `kms.edl` by defining the ecalls and adding some structures that we will be working with.
+We are going to add the following:
 ```c++
+// kms.edl
+enclave {
+// ...
+    struct format_settings_t
+    {
+        [size=size] uint8_t* buffer;
+        size_t size;
+    };
+
+    struct pem_key_t
+    {
+        [size=size] uint8_t* buffer;
+        size_t size;
+    };
+
+    struct evidence_t
+    {
+        [size=size] uint8_t* buffer;
+        size_t size;
+    };
+
+    struct message_t
+    {
+        [size=size] uint8_t* data;
+        size_t size;
+    };
+
     trusted {
         // Untrusted port
         public int set_up_server([in, string] const char* port, bool keep_server_up);
         
+        // Extract the evidence from the enclave
+        public int get_evidence_with_pub_key(
+            [in] const oe_uuid_t* format_id, 
+            [in] format_settings_t* format_settings, 
+            [out] pem_key_t *pem_key,
+            [out] evidence_t *evidence
+        );
+
+
         // Extract the enclave's report and public key for the remote attestation
         public int get_report(
             [out] uint8_t **pem_key,
@@ -94,10 +126,14 @@ Still in the trusted section, we are going to add the following:
             [out] size_t *report_size
         );
     };
+
+//...
+
+}
 ```
 
+In the `get_evidence_with_pub_key` function, `format_id` and `format_settings` are just copied as it is. Those two variables represents the settings that will passed on to the enclave to generate the right evidence (such as the ECDSA-key generation format). 
 This function adds the public key in PEM format and the report in the enclave and copies it in the four variables (hence the outbound `out`). 
-
 
 ### Attestation structure
 
@@ -122,27 +158,28 @@ So, let's start by trying to add the `get_report` ecall to retrieve the enclave 
 ### The crypto class object 
 The crypto class object provides functionality for encryption and hashing using the RSA algorithm and SHA-256 hash function. It uses the MbedTLS library for cryptographic operations.
 
-1. `Crypto::Crypto()` - Constructor method that initializes the crypto module by calling `init_mbedtls()`.
+??? "Explanations about the crypto class object"
+    1. `Crypto::Crypto()` - Constructor method that initializes the crypto module by calling `init_mbedtls()`.
 
-2. `Crypto::~Crypto()` - Destructor method that frees resources allocated by the crypto module by calling `cleanup_mbedtls()`.
+    2. `Crypto::~Crypto()` - Destructor method that frees resources allocated by the crypto module by calling `cleanup_mbedtls()`.
 
-3. `Crypto::init_mbedtls()` - Method that initializes the crypto module by performing the following operations:
-   - Initializes the `m_entropy_context`, `m_ctr_drbg_context`, and `m_pk_context` structures from the mbedtls library.
-   - Seeds the `m_ctr_drbg_context` structure with entropy using `mbedtls_ctr_drbg_seed()` function.
-   - Sets up an RSA key pair of **2048-bit** with exponent **65537** using `mbedtls_rsa_gen_key()` function.
-   - Writes out the public key in PEM format using `mbedtls_pk_write_pubkey_pem()` function.
+    3. `Crypto::init_mbedtls()` - Method that initializes the crypto module by performing the following operations:
+    - Initializes the `m_entropy_context`, `m_ctr_drbg_context`, and `m_pk_context` structures from the mbedtls library.
+    - Seeds the `m_ctr_drbg_context` structure with entropy using `mbedtls_ctr_drbg_seed()` function.
+    - Sets up an RSA key pair of **2048-bit** with exponent **65537** using `mbedtls_rsa_gen_key()` function.
+    - Writes out the public key in PEM format using `mbedtls_pk_write_pubkey_pem()` function.
 
-4. `Crypto::cleanup_mbedtls()` - Method that frees resources allocated by the crypto module by calling the corresponding mbedtls cleanup functions (`mbedtls_pk_free()`, `mbedtls_entropy_free()`, and `mbedtls_ctr_drbg_free()`).
+    4. `Crypto::cleanup_mbedtls()` - Method that frees resources allocated by the crypto module by calling the corresponding mbedtls cleanup functions (`mbedtls_pk_free()`, `mbedtls_entropy_free()`, and `mbedtls_ctr_drbg_free()`).
 
-5. `Crypto::retrieve_public_key()` - Method that retrieves the public key of the enclave by copying the value of `m_public_key` to the `pem_public_key` buffer provided.
+    5. `Crypto::retrieve_public_key()` - Method that retrieves the public key of the enclave by copying the value of `m_public_key` to the `pem_public_key` buffer provided.
 
-6. `Crypto::Sha256()` - Method that computes the SHA256 hash of the provided data using the mbedtls library functions (`mbedtls_sha256_init()`, `mbedtls_sha256_starts_ret()`, `mbedtls_sha256_update_ret()`, and `mbedtls_sha256_finish_ret()`).
+    6. `Crypto::Sha256()` - Method that computes the SHA256 hash of the provided data using the mbedtls library functions (`mbedtls_sha256_init()`, `mbedtls_sha256_starts_ret()`, `mbedtls_sha256_update_ret()`, and `mbedtls_sha256_finish_ret()`).
 
-7. `Crypto::Encrypt()` - Method that encrypts the provided data using the public key of another enclave. The method performs the following operations:
-   - Parses the provided public key into an `mbedtls_pk_context` structure using `mbedtls_pk_parse_public_key()` function.
-   - Sets the RSA padding and hash algorithm to be used for encryption.
-   - Encrypts the data using `mbedtls_rsa_pkcs1_encrypt()` function with the parsed public key.
-   - Sets the encrypted data size and returns `true` if successful.
+    7. `Crypto::Encrypt()` - Method that encrypts the provided data using the public key of another enclave. The method performs the following operations:
+    - Parses the provided public key into an `mbedtls_pk_context` structure using `mbedtls_pk_parse_public_key()` function.
+    - Sets the RSA padding and hash algorithm to be used for encryption.
+    - Encrypts the data using `mbedtls_rsa_pkcs1_encrypt()` function with the parsed public key.
+    - Sets the encrypted data size and returns `true` if successful.
 
 
 ### The attestation class object 

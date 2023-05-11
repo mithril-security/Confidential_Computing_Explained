@@ -692,7 +692,12 @@ void generate_rsa_keypair(unsigned char* public_key, unsigned char* private_key)
 !!! note "Coming soon"
     this paragraph is not yet implemented. 
 
+!!! note "Improvements"
+As done with the other functions, you can add as much as features as you want or need. 
+
+
+Now that we've seen how to run an enclave and how to interact with, let's move on to how to securely establish the connection, and implement a remote proof that we are using the right application on the right environment through remote attestation !
 
 <br />
 <br />
-[Next Chapter Under Construction :fontawesome-solid-hammer:](#){ .md-button .md-button--primary }
+[Next :fontawesome-solid-forward-fast:](./part_2.md){ .md-button .md-button--primary }
