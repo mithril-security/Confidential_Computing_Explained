@@ -687,7 +687,7 @@ void generate_rsa_keypair(unsigned char* public_key, unsigned char* private_key)
 ```
 
 
-#### Encryption & decryption
+#### Improvements
 
 !!! note "Coming soon"
     this paragraph is not yet implemented. 
