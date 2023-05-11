@@ -72,7 +72,8 @@ But this can also be done through the generation of evidence through `oe_get_evi
 
 ### Adding `ecall`s for the remote attestation
 We will be adding two different examples, the first one, will be regarding extracting the report inside the enclave and will be represented by the `get_report` ecall. 
-In the second one, we will be presenting the evidence that will 
+In the second one, we will be presenting the evidence that will be represented by the `get_evidence_with_pub_key` ecall. 
+
 So let's change the `kms.edl` by defining the ecalls and adding some structures that we will be working with.
 We are going to add the following:
 ```c++
