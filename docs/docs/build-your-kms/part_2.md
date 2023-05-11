@@ -5,19 +5,30 @@
 
 
 
-## Some explanation and theory
-Remote attestation is a security mechanism that enables a **remote entity** to verify the **integrity and authenticity** of a system or application running on another machine. This mechanism can be used to ensure that the system or application is running in a trusted environment and has not been tampered with by a malicious attacker.
+## Some theoretical explanation and set-up 
+<!-- Remote attestation is a security mechanism that enables a **remote entity** to verify the **integrity and authenticity** of a system or application running on another machine. This mechanism can be used to ensure that the system or application is running in a trusted environment and has not been tampered with by a malicious attacker.
 
 ***In Intel SGX***, we achieve the remote attestation by generating a enclave **report** that is then used to generate the **quote** which represents the signature of the report. 
 
 The **quote** in Intel SGX represents a digitally signed attestation generated through a hardware and software configuration of a particular SGX enclave. It is the signature that gives proof of the integrity of the application and system (software and hardware evidence). 
 
-It is the quote (partly) that verifies the integrity of the code inside the enclave and that it's really an application enclave running with Intel SGX protections on a trusted Intel SGX platform. 
+It is the quote (partly) that verifies the integrity of the code inside the enclave and that it's really an application enclave running with Intel SGX protections on a trusted Intel SGX platform.  -->
 
-### So how does it work? (briefly)
-Architectural enclaves. More explication at https://blindai.mithrilsecurity.io/en/latest/docs/security/remote_attestation/
+### How does it work? (briefly)
+In Remote attestation, as explained by the IETF team (you can find the whole document [here](https://ietf-rats-wg.github.io/architecture/draft-ietf-rats-architecture.html)),   
+>*"one peer (the "Attester") produces believable information about itself - Evidence - to enable a remote peer (the "Relying Party") to decide whether to consider that Attester a trustworthy peer or not. RATS are facilitated by an additional vital party, the Verifier"*.
+
+So, remote attestation is a security mechanism used to ensure the integrity of a computing system and its software components. It works by verifying that a system has not been compromised by checking its hardware and software configurations against a trusted set of measurements.
+
+The procedure for remote attestation typically involves three parties: the verifier, the attester, and the challenger. The verifier is the entity that wants to verify the integrity of the attester's system, while the attester is the system being verified. The challenger is a trusted third party that provides the verifier with the necessary information to verify the attester's system.
+
+The procedure works as follows: The ***attester*** generates a ***set of measurements that describe its hardware and software configurations and sends them to the verifier***. The ***verifier*** then compares ***these measurements against a trusted set of measurements provided by the challenger***. If the measurements match, the verifier can be confident that the attester's system has not been compromised.
 
 
+Intel SGX's approach to Remote Attestation is the same but demands a lot of detail to be explained in this article. Fortunaletly, if you're looking for that depth of explanation, we've wrote an article about it that you can find [here](https://blindai.mithrilsecurity.io/en/latest/docs/security/remote_attestation/). 
+
+
+Good thing for us, we won't have to get in that much detail because OpenEnclave have tried to simplifies this approach to make more usable as we'll see next ! 
 
 ### Attestation on OpenEnclave
 
@@ -39,7 +50,26 @@ The `certificate` and `private_key` character pointers contain example values fo
 verifying that aesm service is up and running. 
 The AESM service is necessary to contact the architectural enclaves. And as explained in the previous paragraph, they also be needed to achieve a functionning *remote attestation*. 
 
-## Quote generation
+To do that, we use `service` command : 
+```bash 
+$ sudo service aesmd status
+● aesmd.service - Intel(R) Architectural Enclave Service Manager
+     Loaded: loaded (/lib/systemd/system/aesmd.service; enabled; vendor preset: enabled)
+     Active: active (running) since Tue 2023-04-11 11:27:11 UTC; 4 weeks 1 days ago
+   Main PID: 764 (aesm_service)
+      Tasks: 4 (limit: 9529)
+     Memory: 18.6M
+     CGroup: /system.slice/aesmd.service
+             └─764 /opt/intel/sgx-aesm-service/aesm/aesm_service
+```
+
+If the service is active as presented, you good to go, else, you can try restarting the service : 
+```bash
+$ sudo service aesmd restart
+```
+
+
+## The evidence generation
 The quote generation process begins by retrieving the report from the enclave. For that purpose, OpenEnclave SDK has an enclave **implementation** that's dedicated. Indeed, the function `oe_get_report` creates a report to be used in atte station (and specifically for our case, remote attestation). This call must be done **inside** the enclave as it is specific to the platform (and each enclave in that sense).
 
 However, to generate the quote, we must do so from the host. Because in the quote, we also have to add to add information specific to the platform, and hence to generate the generate, the host contacts the quoting enclave with the freshly sent report from the enclave. 
