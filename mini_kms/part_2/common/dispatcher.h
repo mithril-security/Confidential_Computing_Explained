@@ -11,7 +11,7 @@
 
 using namespace std;
 
-class ecall_dispatcher
+class dispatcher
 {
   private:
     bool m_initialized;
@@ -20,8 +20,8 @@ class ecall_dispatcher
     string m_name;
 
   public:
-    ecall_dispatcher(const char* name);
-    ~ecall_dispatcher();
+    dispatcher(const char* name);
+    ~dispatcher();
     int get_remote_report_with_pubkey(
         uint8_t** pem_key,
         size_t* key_size,

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <openenclave/attestation/sgx/evidence.h>
 #include <openenclave/host.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -11,6 +12,8 @@
 using namespace std;
 
 
+// SGX remote attestation UUID 
+static oe_uuid_t sgx_remote_uuid = {OE_FORMAT_UUID_SGX_ECDSA};
 
 // Simulation mode : Doesn't work with Remote Attestation, need of real hardward
 bool check_simulate_opt(int* argc, const char* argv[])
@@ -57,6 +60,57 @@ oe_enclave_t* create_enclave(const char* enclave_path, uint32_t flags)
 }
 
 
+// Attestation's evidence 
+int get_enclave_evidence(
+    oe_uuid_t* format_id, 
+    const char* enclave_name, 
+    oe_enclave_t* enclave
+)
+{
+    oe_result_t result = OE_OK; 
+    int ret = 1; 
+    format_settings_t format_settings = {0}; 
+    evidence_t evidence = {0};
+    pem_key_t pem_key = {0}; 
+
+    printf("[Host]: Begining the attestation procedure.\n");
+
+    printf("Host: Requesting %s format settings\n", enclave_name);
+    // result = get_enclave_format_settings(
+    //     enclave, &ret, format_id, &format_settings);
+    // if ((result != OE_OK) || (ret != 0))
+    // {
+    //     printf("Host: get_format_settings failed. %s\n", oe_result_str(result));
+    //     if (ret == 0)
+    //         ret = 1;
+    //     goto exit;
+    // }    
+    result = get_evidence(
+        enclave,
+        &ret,
+        format_id,
+        &format_settings,
+        &pem_key,
+        &evidence);
+    if ((result != OE_OK) || (ret != 0))
+    {
+        printf(
+            "[Host]: get_evidence failed. %s\n",
+            oe_result_str(result));
+        if (ret == 0)
+            ret = 1;
+        goto exit;
+    }
+
+
+    exit:
+    free(pem_key.buffer);
+    free(evidence.buffer);
+    free(format_settings.buffer);
+    return ret;
+}
+
+
 int main(int argc, const char* argv[])
 {
     oe_result_t result;
@@ -73,8 +127,16 @@ int main(int argc, const char* argv[])
     uint8_t *report = NULL;
     size_t report_size = NULL; 
 
+    // format id 
+    oe_uuid_t* format_id = nullptr; 
+    format_settings_t format_settings = {0}; 
+
     
     cout << "[Host]: entering main" << endl;
+
+    cout << "[Host]: remote attestation initiation using ECDSA." << endl; 
+    format_id = &sgx_remote_uuid; 
+
 
     // if (check_simulate_opt(&argc, argv))
     // {
@@ -89,15 +151,20 @@ int main(int argc, const char* argv[])
 
 
     // Enclave creation 
+    const char* enclave_name = "enclave_II";
+
     enclave = create_enclave(argv[1], flags);
     if (enclave == NULL)
     {
         goto exit;
     }
     // Getting the claims for the remote attestation from the enclave
-    printf("[Host]: Requesting the report and all the proofs required to establish the Remote Attestation.\n");
+    printf("[Host]: Requesting the report.\n");
 
     ret = get_report(enclave, &ret, &pem_key, &key_size, &report, &report_size);
+
+    printf("[Host]: Requesting the evidence.\n");
+    ret = get_enclave_evidence(format_id, enclave_name, enclave);
 
 
     // Setting up the untrusted server

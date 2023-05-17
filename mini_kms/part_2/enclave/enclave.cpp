@@ -83,7 +83,7 @@ const char*  PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\n" \
 "5XSIkvovaR8nRBYBV/aF/kMyPQ==\n" \
 "-----END PRIVATE KEY-----";
 
-static ecall_dispatcher dispatcher("Enclave1");
+static dispatcher dispatcher("Enclave1");
 const char* enclave_name = "Enclave1";
 
 
@@ -230,11 +230,26 @@ int get_report(uint8_t **pem_key, size_t *key_size, uint8_t **report, size_t *re
     result = oe_attester_initialize();
     TRACE_ENCLAVE("Calling sgx plugin attester.\n");
 
-    TRACE_ENCLAVE("Calling get report and dispatcher\n");
+    TRACE_ENCLAVE("Calling get report via dispatcher\n");
 
-
-   
-    
-    
     return dispatcher.get_remote_report_with_pubkey(pem_key, key_size, report, report_size);
+}
+
+int get_evidence(oe_uuid_t* format_id, format_settings_t* format_settings, pem_key_t* pem_key, evidence_t* evidence){
+    TRACE_ENCLAVE("Entering enclave.\n");
+    // TRACE_ENCLAVE("Modules loading...\n");
+    // if (load_oe_modules() != OE_OK)
+    // {
+    //     printf("loading required Open Enclave modules failed\n");
+    //     return -1;
+    // }
+    // TRACE_ENCLAVE("Modules loaded successfully.\n");
+
+    TRACE_ENCLAVE("Calling sgx attester init.\n");
+    oe_result_t result = OE_OK;
+    result = oe_attester_initialize();
+    TRACE_ENCLAVE("Calling sgx plugin attester.\n");
+
+    TRACE_ENCLAVE("Calling get evidence via dispatcher\n");
+    return dispatcher.get_evidence_with_pubkey(format_id, format_settings, pem_key, evidence);
 }

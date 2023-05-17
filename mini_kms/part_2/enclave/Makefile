@@ -24,13 +24,14 @@ all:
 	$(MAKE) build
 	$(MAKE) keys
 	$(MAKE) sign
-
+# adding the 	$(CXX) -g -c $(CXXFLAGS) -I. -I.. -std=c++11 -DOE_API_VERSION=2 enclave.cpp ../common/attestation.cpp ../common/crypto.cpp ../common/dispatcher.cpp line to add our classes 
+# must be compiled in C++
 build:
 	@ echo "Compilers used: $(CC), $(CXX)"
 	oeedger8r ../kms.edl --trusted \
 		--search-path $(INCDIR) \
 		--search-path $(INCDIR)/openenclave/edl/sgx
-	$(CXX) -g -c $(CXXFLAGS) $(INCLUDES) -I. -I.. -std=c++11 -DOE_API_VERSION=2 enclave.cpp ../common/attestation.cpp ../common/crypto.cpp ../common/dispatcher.cpp
+	$(CXX) -g -c $(CXXFLAGS) -I. -I.. -std=c++11 -DOE_API_VERSION=2 enclave.cpp ../common/attestation.cpp ../common/crypto.cpp ../common/dispatcher.cpp
 	$(CC) -g -c $(CFLAGS) -DOE_API_VERSION=2 kms_t.c -o kms_t.o
 	$(CC) -g -c $(CFLAGS) -DOE_API_VERSION=2 ../mongoose/mongoose.c -lmbedtls -lmbedcrypto -lmbedx509 -D MG_ENABLE_MBEDTLS=1 -o mongoose.o
 	$(CXX) -o enclave kms_t.o mongoose.o enclave.o -D MG_ENABLE_MBEDTLS=1 -loelibcxx -loehostsock -loehostresolver -loehostepoll $(LDFLAGS) $(CRYPTO_LDFLAGS) 

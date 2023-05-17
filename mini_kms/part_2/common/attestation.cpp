@@ -83,8 +83,8 @@ bool Attestation::generate_attestation_evidence(
         0,
         custom_claims_buffer,
         custom_claims_buffer_size,
-        format_settings,
-        format_settings_size,
+        nullptr,
+        0,
         evidence,
         evidence_size,
         nullptr,
@@ -97,6 +97,8 @@ bool Attestation::generate_attestation_evidence(
 
     ret = true;
     TRACE_ENCLAVE("generate_attestation_evidence succeeded.");
+    TRACE_ENCLAVE("evidence is : %d", evidence_size);
+
 exit:
     oe_attester_shutdown();
     return ret;

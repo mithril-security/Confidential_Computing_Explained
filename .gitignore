@@ -42,3 +42,6 @@ mini_kms/part_2/host/kms_u.o
 ./mini_kms/part_2/private_key.key
 mini_kms/part_2/private_key.key
 mini_kms/part_2/enclave/mongoose.o
+mini_kms/part_2/enclave/attestation.o
+mini_kms/part_2/enclave/crypto.o
+mini_kms/part_2/enclave/dispatcher.o

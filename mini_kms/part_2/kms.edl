@@ -41,12 +41,20 @@ enclave {
         // Untrusted port
         public int set_up_server([in, string] const char* port, bool keep_server_up);
         
-        // Extract the enclave's report and public key for the remote attestation
+        // Extract the enclave's report and public key
         public int get_report(
             [out] uint8_t **pem_key,
             [out] size_t *key_size, 
             [out] uint8_t **report, 
             [out] size_t *report_size
+        );
+
+        // Extract the enclave's evidence and public key
+        public int get_evidence(
+            [in] oe_uuid_t* format_id, 
+            [in] format_settings_t* format_settings,
+            [out] pem_key_t* pem_key, 
+            [out] evidence_t* evidence
         );
 
         // Trusted port 

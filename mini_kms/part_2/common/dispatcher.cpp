@@ -10,14 +10,14 @@
 #include "attestation.h"
 #include "attestation.cpp"
 
-ecall_dispatcher::ecall_dispatcher(
+dispatcher::dispatcher(
     const char* name)
     : m_crypto(NULL), m_attestation(NULL)
 {
     m_initialized = initialize(name);
 }
 
-ecall_dispatcher::~ecall_dispatcher()
+dispatcher::~dispatcher()
 {
     if (m_crypto)
         delete m_crypto;
@@ -26,7 +26,7 @@ ecall_dispatcher::~ecall_dispatcher()
         delete m_attestation;
 }
 
-bool ecall_dispatcher::initialize(const char* name)
+bool dispatcher::initialize(const char* name)
 {
     bool ret = false;
 
@@ -48,7 +48,7 @@ exit:
     return ret;
 }
 
-int ecall_dispatcher::get_evidence_with_pubkey(
+int dispatcher::get_evidence_with_pubkey(
     const oe_uuid_t* format_id, 
     format_settings_t* format_settings, 
     pem_key_t* pem_key, 
@@ -63,7 +63,7 @@ int ecall_dispatcher::get_evidence_with_pubkey(
     TRACE_ENCLAVE("Running Get evidence with pubkey.\n");
     if (m_initialized == false )
     {
-        TRACE_ENCLAVE("Ecall_dispatcher initialization failed.\n");
+        TRACE_ENCLAVE("dispatcher initialization failed.\n");
         goto exit; 
     }
 
@@ -104,7 +104,11 @@ int ecall_dispatcher::get_evidence_with_pubkey(
     pem_key->size = sizeof(pem_public_key);
 
     ret = 0;
-    TRACE_ENCLAVE("get_evidence_with_public_key succeeded");
+    TRACE_ENCLAVE("get_evidence_with_public_key succeeded.");
+    TRACE_ENCLAVE("evidence is : %s.", evidence->buffer);
+    TRACE_ENCLAVE("public key is : %s.", pem_key->buffer);
+
+
 
 exit:
     if (ret != 0)
@@ -131,7 +135,7 @@ exit:
  * The enclave that receives the key will use the remote report to attest this
  * enclave.
  */
-int ecall_dispatcher::get_remote_report_with_pubkey(
+int dispatcher::get_remote_report_with_pubkey(
     uint8_t** pem_key,
     size_t* key_size,
     uint8_t** remote_report,
@@ -146,7 +150,7 @@ int ecall_dispatcher::get_remote_report_with_pubkey(
     TRACE_ENCLAVE("get_remote_report_with_pubkey");
     if (m_initialized == false)
     {
-        TRACE_ENCLAVE("ecall_dispatcher initialization failed.");
+        TRACE_ENCLAVE("dispatcher initialization failed.");
         goto exit;
     }
 
