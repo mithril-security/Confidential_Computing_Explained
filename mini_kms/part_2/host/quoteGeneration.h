@@ -6,7 +6,7 @@
  * The quote is sent to the relying party to verify all the information contained
  * in it. 
 */
-class quoteGeneration {
+class QuoteGeneration {
     private: 
         oe_report_t _parsedReport;
         uint8_t* _enclaveHeldData; 
@@ -16,15 +16,17 @@ class quoteGeneration {
     
     public: 
         //Constructor 
-        quoteGeneration(oe_report_t parsedReport, uint8_t* ehd, 
+        QuoteGeneration(oe_report_t parsedReport, uint8_t* ehd, 
             size_t ehdSize, uint8_t* quote, size_t quoteSize    
         ); 
         //Destructor
-        ~quoteGeneration();
+        // ~QuoteGeneration();
 
         //Parser to JSon
         void parseQuote(char* jsondata);
 
+        void PrintToJson(FILE *fp );
+
     private: 
         const char *FormatHexBuffer(char* buffer, uint maxSize, uint8_t *data, size_t size); 
-}
+};

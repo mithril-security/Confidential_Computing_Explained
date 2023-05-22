@@ -8,6 +8,8 @@
 #include <string>
 
 #include "kms_u.h"
+// #include "quoteGeneration.h"
+#include "quoteGeneration.cpp"
 
 using namespace std;
 
@@ -126,6 +128,7 @@ int main(int argc, const char* argv[])
     size_t key_size = NULL;
     uint8_t *report = NULL;
     size_t report_size = NULL; 
+    oe_report_t parsed_report = {0};
 
     // format id 
     oe_uuid_t* format_id = nullptr; 
@@ -161,10 +164,33 @@ int main(int argc, const char* argv[])
     // Getting the claims for the remote attestation from the enclave
     printf("[Host]: Requesting the report.\n");
 
-    ret = get_report(enclave, &ret, &pem_key, &key_size, &report, &report_size);
+    result = get_report(enclave, &ret, &pem_key, &key_size, &report, &report_size);
+    if ((result != OE_OK) || (ret != 0))
+    {
+        printf("[Host]: get_report failed.");
+        if (ret==0)
+        ret =1;
+        goto exit;
+    }  
+    
+    printf("[Host]: The enclave's public key is :\n%s\n", pem_key);
+    printf("[Host]: Parsing enclave report.\n");
+    result = oe_parse_report(report, report_size, &parsed_report);
 
-    printf("[Host]: Requesting the evidence.\n");
-    ret = get_enclave_evidence(format_id, enclave_name, enclave);
+    if ((result != OE_OK))
+    {
+        printf("[Host]: Parsing report failed.");
+        goto exit;
+    }  
+    else{
+            printf("[Host]: Begining quote Generation.\n");
+            QuoteGeneration quotegen(parsed_report, report, report_size, pem_key, key_size);
+            quotegen.PrintToJson(stdout);
+    }
+
+
+    // printf("[Host]: Requesting the evidence.\n");
+    // ret = get_enclave_evidence(format_id, enclave_name, enclave);
 
 
     // Setting up the untrusted server
