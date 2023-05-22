@@ -10,7 +10,7 @@ ___________________________________
 
 ## Makefiles and compilation logic 
 
-The structure of the code will be seperated in two.
+The structure of the code will be separated in two.
 
 - One part will be the code **running in the host** that will **launch the enclave**. 
 - One will be the code **running inside the enclave**. 

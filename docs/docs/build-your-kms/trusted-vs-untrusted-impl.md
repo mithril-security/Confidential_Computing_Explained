@@ -11,7 +11,7 @@ Ecalls and Ocalls work differently. We will not go into too much detail explaini
 ___________________________________________________
 ## EDL and proxy files
 
-To implement the Ecall and Ocall, we'll need to define them in a **Enclave Definition Langage (EDL)** file. 
+To implement the Ecall and Ocall, we'll need to define them in a **Enclave Definition Language (EDL)** file. 
 
 Then we'll pass this EDL file to a tool called **edger8r**. We'll use it to generate **proxy files**, which will handle interactions between the host and the enclave. 
 
@@ -56,7 +56,7 @@ To communicate data safely through HTTP, you need an encryption layer such as th
 
 The three main properties of TLS are:
 
-- Server authentification. 
+- Server authentication. 
 - Confidentiality of the exchanged data. 
 - Integrity of the exchanged data. 
 
