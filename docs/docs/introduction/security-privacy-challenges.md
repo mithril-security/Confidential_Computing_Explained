@@ -5,7 +5,7 @@ ___________________________________________________
 
 **Cloud technology** has been critical for this revolution to happen, because it has provided the backbone of many applications powering its growth. Software as a Service (**SaaS**) companies, hosted on the Cloud, provide fully managed services of great quality, scalability, and availability, under the condition that data is sent to them to handle it.
 
-**The problem?** In doing so, SaaS providers have also become **points of failure** in terms of security by **handling users' data directly**. Compromission of these SaaS providers will induce the leakage of their users' data. 
+**The problem?** In doing so, SaaS providers have also become **points of failure** in terms of security by **handling users' data directly**. If they get compromised, they could leak their users' data. 
 
 This is why integrating external SaaS providers has become difficult in regulated and sensitive industries such as healthcare, finance or governments, to mitigate these risks.
 
