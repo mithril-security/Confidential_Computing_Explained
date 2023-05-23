@@ -87,7 +87,7 @@ The `all` target depends on three other targets:
  + `keys` to **generate cryptographic keys**.
  + `sign` to **sign** the program using the keys. 
 
-To add `socket`, `network` and `syscall` support to the enclave, we must link rewritten libraries for OpenEnclave at compilation time. They are necessary to run the web server and communicate through it.  
+To add `socket`, `network` and `syscall` support to the enclave, we must link rewritten libraries for Open Enclave at compilation time. They are necessary to run the web server and communicate through it.  
 
 + `-loelibcxx` for C++ components
 + `-loehostsock` for socket support
@@ -380,7 +380,7 @@ $ touch aes_genkey.cpp rsa_genkey.cpp
 #include "generation/rsa_genkey.cpp"
 ```
 
-### Loading the OpenEnclave modules
+### Loading the Open Enclave modules
 
 While it is necessary to link the network components libraries at compilation time, we still need to load them. The function `load_oe_modules` serves that purpose by calling the loading function for each feature:
 
@@ -557,7 +557,7 @@ You should get a status json response.
 
 ### Functions implementation
 
-In **OpenEnclave**, the `oe_random()` function is used to generate random numbers. This function uses the RDRAND instruction, if available, to generate entropy from the processor's hardware random number generator (RNG). If the RDRAND instruction is not available, the function uses the operating system's random number generator. The `oe_random()` function is used to generate keys, nonces, and other random data in OpenEnclave.
+In **Open Enclave**, the `oe_random()` function is used to generate random numbers. This function uses the RDRAND instruction, if available, to generate entropy from the processor's hardware random number generator (RNG). If the RDRAND instruction is not available, the function uses the operating system's random number generator. The `oe_random()` function is used to generate keys, nonces, and other random data in Open Enclave.
 **Mbedtls** should normally calls to RDRAND instruction when calling to a random number generator. 
 
 #### AES generation key

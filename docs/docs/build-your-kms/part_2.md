@@ -1,51 +1,55 @@
-# Part 2 : Adding the remote attestation to our KMS code
+# Part 2 : Adding the remote attestation 
 
-!!! warning
-    This part CANNOT be done in simulation mode
-
+!!! warning "This part CANNOT be done in simulation mode"
 
 
-## Some theoretical explanation and set-up 
-<!-- Remote attestation is a security mechanism that enables a **remote entity** to verify the **integrity and authenticity** of a system or application running on another machine. This mechanism can be used to ensure that the system or application is running in a trusted environment and has not been tampered with by a malicious attacker.
+## Remote Attestation Theory
 
-***In Intel SGX***, we achieve the remote attestation by generating a enclave **report** that is then used to generate the **quote** which represents the signature of the report. 
+Remote attestation is a security mechanism that enables a **remote entity** to verify the **integrity and authenticity** of a system or application running on another machine. This mechanism can be used to ensure that the system or application is running in a trusted environment and has not been tampered with by a malicious attacker.
+
+**In Intel SGX**, we achieve the remote attestation by generating a enclave **report**. That report is then used to generate the **quote**, which represents its signature. 
 
 The **quote** in Intel SGX represents a digitally signed attestation generated through a hardware and software configuration of a particular SGX enclave. It is the signature that gives proof of the integrity of the application and system (software and hardware evidence). 
 
-It is the quote (partly) that verifies the integrity of the code inside the enclave and that it's really an application enclave running with Intel SGX protections on a trusted Intel SGX platform.  -->
+It is the quote (partly) that verifies the integrity of the code inside the enclave and that it's really an application enclave running with Intel SGX protections on a trusted Intel SGX platform.
 
-### How does it work? (briefly)
-In Remote attestation, as explained by the IETF team (you can find the whole document [here](https://ietf-rats-wg.github.io/architecture/draft-ietf-rats-architecture.html)),   
->*"one peer (the "Attester") produces believable information about itself - Evidence - to enable a remote peer (the "Relying Party") to decide whether to consider that Attester a trustworthy peer or not. RATS are facilitated by an additional vital party, the Verifier"*.
+### How does it work?
+
+In remote attestation, [as explained by the IETF team](https://ietf-rats-wg.github.io/architecture/draft-ietf-rats-architecture.html):
+
+>*One peer (the "Attester") produces believable information about itself - Evidence - to enable a remote peer (the "Relying Party") to decide whether to consider that Attester a trustworthy peer or not. [Remote Attestation procedures] are facilitated by an additional vital party, the Verifier*.
 
 So, remote attestation is a security mechanism used to ensure the integrity of a computing system and its software components. It works by verifying that a system has not been compromised by checking its hardware and software configurations against a trusted set of measurements.
 
-The procedure for remote attestation typically involves three parties: the verifier, the attester, and the challenger. The verifier is the entity that wants to verify the integrity of the attester's system, while the attester is the system being verified. The challenger is a trusted third party that provides the verifier with the necessary information to verify the attester's system.
+The procedure for remote attestation typically involves three parties: the verifier, the attester, and the challenger. The verifier is the entity that wants to verify the integrity of the attester's system. The attester is the system being verified. The challenger is a trusted third party that provides the verifier with the necessary information to verify the attester's system.
 
-The procedure works as follows: The ***attester*** generates a ***set of measurements that describe its hardware and software configurations and sends them to the verifier***. The ***verifier*** then compares ***these measurements against a trusted set of measurements provided by the challenger***. If the measurements match, the verifier can be confident that the attester's system has not been compromised.
+The procedure works as follows: 
 
+1. The ***attester*** generates a ***set of measurements that describe its hardware and software configurations and sends them to the verifier***. 
+2. The ***verifier*** then compares ***these measurements against a trusted set of measurements provided by the challenger***.
+3. **If the measurements match**, the **verifier** can be confident that the attester's **system has not been compromised**.
 
-Intel SGX's approach to Remote Attestation is the same but demands a lot of detail to be explained in this article. Fortunaletly, if you're looking for that depth of explanation, we've wrote an article about it that you can find [here](https://blindai.mithrilsecurity.io/en/latest/docs/security/remote_attestation/). 
+Intel SGX's approach to remote attestation is the same but there are too many details to cover to explain it here. If you are interested, though, we wrote an in-depth article about it that you can find [here](https://blindai.mithrilsecurity.io/en/latest/docs/security/remote_attestation/). 
 
+Luckily, Open Enclave has tried to simplify this approach to make their solution more usable, so we don't need to understand all the subtleties to continue!
 
-Good thing for us, we won't have to get in that much detail because OpenEnclave have tried to simplifies this approach to make more usable as we'll see next ! 
+### Open Enclave's Attestation
 
-### Attestation on OpenEnclave
+The **Open Enclave** community tried to develop a way that's more friendly to the Remote attestation procedures (RATS) specifications. This resulted in an **attestation API**. This API gives a set of functions to generate reports, evidence, and handles all the attestation interface for us. The Open Enclave SDK uses the functions to get evidence and to verify it.
 
-The **Open Enclave** community tried to develop a way that's more friendly to the Remote attestation procedures (RATS) specifications. This resulted in an attestation API. This API gives a set of functions to generate reports, evidence, and handles all the attestation interface for us to be used. The OpenEnclave SDK uses the functions to get evidence and to verify it. 
-
-- `openenclave/enclave.h`: contains Open Enclave SDK APIs for creating and managing Enclaves which we've already used.
-- `openenclave/attestation/attester.h`: provides functions to perform remote attestation and to verify attestation evidence, that what we will need for generating the evidence.  
-- `openenclave/attestation/sgx/evidence.h`: defines structures and functions for attestation evidence, specifically for Intel Software Guard Extensions (SGX) Enclaves.
+- `openenclave/enclave.h`: contains Open Enclave SDK APIs for creating and managing enclaves which we've already used.
+- `openenclave/attestation/attester.h`: provides functions to perform remote attestation and to verify attestation evidence. We will need this for generating the evidence.  
+- `openenclave/attestation/sgx/evidence.h`: defines structures and functions for attestation evidence, specifically for Intel SGX Enclaves.
 - `openenclave/attestation/sgx/report.h`: provides functions for generating reports that attest to the current state of an SGX Enclave. 
 
+____________________________________________________________
 
+## AESM service and setup
 
-### Verifying that all the services are set-up 
-verifying that aesm service is up and running. 
-The AESM service is necessary to contact the architectural enclaves. And as explained in the previous paragraph, they also be needed to achieve a functionning *remote attestation*. 
+To start, we'll only need to verify that the AESM service is up and running. It is necessary to contact the architectural enclaves, and achieve a functioning remote attestation. 
 
 To do that, we use `service` command : 
+
 ```bash 
 $ sudo service aesmd status
 ● aesmd.service - Intel(R) Architectural Enclave Service Manager
@@ -59,23 +63,32 @@ $ sudo service aesmd status
 ```
 
 If the service is active as presented, you good to go, else, you can try restarting the service : 
+
 ```bash
 $ sudo service aesmd restart
 ```
 
+____________________________________________________________
 
-## The evidence generation
-The evidence generation process begins by retrieving the necessary information from the enclave. For that purpose, OpenEnclave SDK has an enclave **implementation** that's dedicated. 
-Indeed, the function `oe_get_report` creates a report to be used in attestation. This call must be done **inside** the enclave as it is specific to the platform (and each enclave in that sense). 
+## Evidence generation
 
-But this can also be done through the generation of evidence through `oe_get_evidence`
+The evidence generation process begins by retrieving the necessary information from the enclave. For that purpose, Open Enclave SDK has an enclave **implementation** that's dedicated. 
 
-### Adding `ecall`s for the remote attestation
-We will be adding two different examples, the first one, will be regarding extracting the report inside the enclave and will be represented by the `get_report` ecall. 
-In the second one, we will be presenting the evidence that will be represented by the `get_evidence_with_pub_key` ecall. 
+The first function is `oe_get_report`. It creates a report to be used in attestation. It's important to note that the call must be done **inside** the enclave as it is specific to the platform (and each enclave in that sense). 
 
-So let's change the `kms.edl` by defining the ecalls and adding some structures that we will be working with.
-We are going to add the following:
+The second one is `oe_get_evidence`, to generate evidence.
+
+***# DID I REWRITE THIS RIGHT?***
+
+### Adding `ecall`s
+
+We will be adding two different Ecalls. 
+
++ `get_report` : will extract the report inside the enclave.
++ `get_evidence_with_pub_key` : will be generating the evidence. 
+
+To do so, we'll need to change our `kms.edl` file. In it, we'll define the Ecalls and add some structures that we will be working with:
+
 ```c++
 // kms.edl
 enclave {
@@ -131,60 +144,75 @@ enclave {
 }
 ```
 
-In the `get_evidence_with_pub_key` function, `format_id` and `format_settings` are just copied as it is. Those two variables represents the settings that will passed on to the enclave to generate the right evidence (such as the ECDSA-key generation format). 
+***# WHAT DO YOU MEAN WITH THE FOLLOWING PARAGRAPH? BIT CONFUSED BY WHAT YOU MEAN BY JUST COPIED AS IS. ISN'T EVERYTHING COPIED AS IS?***
+
+In the `get_evidence_with_pub_key` function, `format_id` and `format_settings` are just copied as is. Those two variables represents the settings that will passed on to the enclave to generate the right evidence (such as the ECDSA-key generation format). 
+
+***# THOUGHT. I KNOW THIS IS VERY BASIC CRYPTO BUT SHOULD WE EXPLAIN ABOUT ECDSA-key OR ADD A WORD SOMEWHERE TO MAKE IT MORE CLEAR? OR MAYBE WHAT THE KEY WILL BE FOR?***
+
 This function adds the public key in PEM format and the report in the enclave and copies it in the four variables (hence the outbound `out`). 
 
 ### Attestation structure
 
-Let's build the `Attestation` structure which will be used to add sequentially all the functions that we will be needing to get integrity and confidentiality information inside the enclave. 
+To get the integrity and confidentiality information inside the enclave, we'll build the `Attestation` structure. It will allow us to add sequentially all the functions that we will be needing to gather them. 
 
-First and foremost, we will start by creating a folder called common, that will have three different class definition :
+First and foremost, we will start by creating a folder called `common`, that will have three different **class object definition** : crypto, attestation and dispatcher.
 
 ```bash
 $ mkdir common && cd common && touch crypto.cpp crypto.h attestation.cpp attestation.h dispatcher.cpp dispatcher.h
 ```
 
-These 6 files will represent three different object classes :
+- `crypto`: This class object will contain all the cryptographic operations that will needed in the attestation operation (such as hashing, encrypting & decrypting). It's pretty much a new (better) version of the functions that we've implemented in Part I. 
 
-- crypto class object: will contain all the cryptographic operations that will needed in the attestation operation (such as hashing, encrypting & decrypting). It's pretty much a new version of the functions that we've implemented in Part I. 
+- `attestation` : This class object will contain the methods that will retrieve the cryptographic proof needed to be sent to the host. It will be using the crypto object to use some cryptographic operations directly. 
 
-- attestation class object: will contain the methods that will retrieve the cryptographic proof needed to be sent to the host. It will be using the crypto object to use some cryptographic operations directly. 
+- `dispatcher` : This class object will handle to communication between the Ecalls and the attestation class.
 
-- dispatcher class object: will handle to communication between the ecalls and the attestation class.
+So, let's start by adding the `get_report` Ecall to retrieve the enclave report. 
 
-So, let's start by trying to add the `get_report` ecall to retrieve the enclave report. 
+### The `crypto` class object 
 
-### The crypto class object 
-The crypto class object provides functionality for encryption and hashing using the RSA algorithm and SHA-256 hash function. It uses the MbedTLS library for cryptographic operations. As it is not the purpose of our tutorial, you can copy the directly the files from the repo. But if you want to know more, here is some explanations
+The `crypto` class object provides functionality for encryption and hashing using the **RSA algorithm** and **SHA-256 hash** function. It uses the **MbedTLS** library for cryptographic operations. 
 
-??? "Explanations about the crypto class object"
+It is not the purpose of our tutorial to go over the details of this class object, so you can copy the files from the mini-KMS repo to yours.
 
-    1. `Crypto::Crypto()` - Constructor method that initializes the crypto module by calling `init_mbedtls()`.
+***# CAN YOU GIVE WHERE THEY ARE? OR GIVE A LINE OF CODE ON HOW TO GET IT DIRECTLY?***
 
-    2. `Crypto::~Crypto()` - Destructor method that frees resources allocated by the crypto module by calling `cleanup_mbedtls()`.
+??? note "More information about the crypto class object"
 
-    3. `Crypto::init_mbedtls()` - Method that initializes the crypto module by performing the following operations:
-    - Initializes the `m_entropy_context`, `m_ctr_drbg_context`, and `m_pk_context` structures from the mbedtls library.
-    - Seeds the `m_ctr_drbg_context` structure with entropy using `mbedtls_ctr_drbg_seed()` function.
-    - Sets up an RSA key pair of **2048-bit** with exponent **65537** using `mbedtls_rsa_gen_key()` function.
-    - Writes out the public key in PEM format using `mbedtls_pk_write_pubkey_pem()` function.
+    1. `Crypto::Crypto()`: Constructor method that initializes the crypto module by calling `init_mbedtls()`.
 
-    4. `Crypto::cleanup_mbedtls()` - Method that frees resources allocated by the crypto module by calling the corresponding mbedtls cleanup functions (`mbedtls_pk_free()`, `mbedtls_entropy_free()`, and `mbedtls_ctr_drbg_free()`).
+    2. `Crypto::~Crypto()`: Destructor method that frees resources allocated by the crypto module by calling `cleanup_mbedtls()`.
 
-    5. `Crypto::retrieve_public_key()` - Method that retrieves the public key of the enclave by copying the value of `m_public_key` to the `pem_public_key` buffer provided.
+    3. `Crypto::init_mbedtls()`: Method that initializes the crypto module by performing the following operations:
 
-    6. `Crypto::Sha256()` - Method that computes the SHA256 hash of the provided data using the mbedtls library functions (`mbedtls_sha256_init()`, `mbedtls_sha256_starts_ret()`, `mbedtls_sha256_update_ret()`, and `mbedtls_sha256_finish_ret()`).
+		- Initializes the `m_entropy_context`, `m_ctr_drbg_context`, and `m_pk_context` structures from the mbedtls library.
+		- Seeds the `m_ctr_drbg_context` structure with entropy using `mbedtls_ctr_drbg_seed()` function.
+		- Sets up an RSA key pair of **2048-bit** with exponent **65537** using `mbedtls_rsa_gen_key()` function.
+		- Writes out the public key in PEM format using `mbedtls_pk_write_pubkey_pem()` function.
 
-    7. `Crypto::Encrypt()` - Method that encrypts the provided data using the public key of another enclave. The method performs the following operations:
-    - Parses the provided public key into an `mbedtls_pk_context` structure using `mbedtls_pk_parse_public_key()` function.
-    - Sets the RSA padding and hash algorithm to be used for encryption.
-    - Encrypts the data using `mbedtls_rsa_pkcs1_encrypt()` function with the parsed public key.
-    - Sets the encrypted data size and returns `true` if successful.
+    4. `Crypto::cleanup_mbedtls()`: Method that frees resources allocated by the crypto module by calling the corresponding *mbedtls* cleanup functions (`mbedtls_pk_free()`, `mbedtls_entropy_free()`, and `mbedtls_ctr_drbg_free()`).
+
+    5. `Crypto::retrieve_public_key()`: Method that retrieves the public key of the enclave by copying the value of `m_public_key` to the `pem_public_key` buffer provided.
+
+    6. `Crypto::Sha256()`: Method that computes the *SHA256* hash of the provided data using the mbedtls library functions (`mbedtls_sha256_init()`, `mbedtls_sha256_starts_ret()`, `mbedtls_sha256_update_ret()`, and `mbedtls_sha256_finish_ret()`).
+
+    7. `Crypto::Encrypt()`: Method that encrypts the provided data using the public key of another enclave. The method performs the following operations:
+
+		- Parses the provided public key into an `mbedtls_pk_context` structure using `mbedtls_pk_parse_public_key()` function.
+		- Sets the RSA padding and hash algorithm to be used for encryption.
+		- Encrypts the data using `mbedtls_rsa_pkcs1_encrypt()` function with the parsed public key.
+		- Sets the encrypted data size and returns `true` if successful.
 
 
-### The attestation class object 
+### The `attestation` class object 
 
-we will start by writing the class's structure and definition:
+As a reminder: the `attestation` class object will contain the methods that will retrieve the cryptographic proof needed to be sent to the host. 
+
+### Structure and definition
+
+Let's start by writing the class's structure and definition:
+
 ```c++
 #include "attestation.h"
 #include <openenclave/attestation/attester.h>
@@ -202,10 +230,17 @@ Attestation::Attestation(Crypto* crypto)
 
 ```
 
+Now, let's add an Attestation object. This **Attestation** object will implement functions for attestation: `generate_attestation_evidence` and `generate_report`.
 
-We are going to add an Attestation object. this **Attestation** object will implement functions for attestation: `generate_attestation_evidence` and `generate_report`.
+#### `generate_attestation_evidence`
 
-`generate_attestation_evidence` method will generate evidence for attestation, which is a cryptographic proof of the *integrity* and *authenticity* of an enclave. The function takes in several parameters including `format_id`, `format_settings`, `data`, and `data_size`. It first hashes the input data using SHA256. Then, it initializes the attester and plugin by calling `oe_attester_initialize()`. Next, it generates custom claims for the attestation. It serializes the custom claims using `oe_serialize_custom_claims` and generates evidence based on the format selected by the attester using `oe_get_evidence`. Finally, it cleans up and returns a boolean indicating whether the function succeeded or failed.
+The `generate_attestation_evidence` method will generate evidence for attestation, which is a cryptographic proof of the *integrity* and *authenticity* of an enclave. The function takes in several parameters including `format_id`, `format_settings`, `data`, and `data_size`. 
+
+1. It first hashes the input data using SHA256. 
+2. Then, it initializes the attester and plugin by calling `oe_attester_initialize()`. 
+3. Next, it generates custom claims for the attestation.
+4. It serializes the custom claims using `oe_serialize_custom_claims` and generates evidence based on the format selected by the attester using `oe_get_evidence`. 
+5. Finally, it cleans up and returns a boolean indicating whether the function succeeded or failed.
 
 ```C++
 bool Attestation::generate_attestation_evidence(
@@ -301,8 +336,15 @@ exit:
 
 ```
 
+#### `generate_report`
 
-On the other hand, `generate_report` generates a remote report for the given data. The SHA256 digest of the data is stored in the `report_data` field of the generated remote report. It first hashes the input data using SHA256, and then generates a remote report using `oe_get_report`. It sets the `OE_REPORT_FLAGS_REMOTE_ATTESTATION` flag to generate a remote report that can be attested remotely by an enclave running on a different platform. Finally, it cleans up and returns a boolean indicating whether the function succeeded or failed.
+The `generate_report` method generates a remote report for the given data. The SHA256 digest of the data is stored in the `report_data` field of the generated remote report. 
+
+1. Firstly, it hashes the input data using SHA256, and then generates a remote report using `oe_get_report`. 
+2. It sets the `OE_REPORT_FLAGS_REMOTE_ATTESTATION` flag to generate a remote report that can be attested remotely by an enclave running on a different platform. 
+3. Finally, it cleans up and returns a boolean indicating whether the function succeeded or failed.
+
+***# THOUGHT: SHOULD WE PUT THOSE 1/2/3/4/5 STEPS AS COMMENTS INSIDE THE CODE? SAME IN THE PREVIOUS SECTION***
 
 ```c++
 bool Attestation::generate_report(
@@ -343,8 +385,11 @@ exit:
 ```
 
 ### The dispatcher
-The dispatcher uses the attestation and crypto object to be called when our ecalls will be defined. 
-So for each our ecalls, we defined a method that sets up everything for the evidence generation and uses the `get_evidence` function method and a another function for `get_report` method :
+
+***# THAT PART IS NOT VERY CLEAR. ALSO, SOME COMMENTS IN CODE COULD HELP***
+
+The `dispatcher` dispatches the `attestation` and `crypto` object to be called when our Ecalls will be defined. For each one of our Ecalls, we defined a method that sets up everything for the evidence generation and uses the `get_evidence` function method and a another function for `get_report` method:
+
 ```C++
 class dispatcher
 {
@@ -374,13 +419,16 @@ class dispatcher
     bool initialize(const char* name);
 };
 ```
-!!! note "The implementation"
-    you can find an example of the implementation on our [repo](https://github.com/mithril-security/Confidential_Computing_Explained/tree/mini_kms/mini_kms/part_2). 
+
+!!! note "You can find an example of the implementation in our [repo](https://github.com/mithril-security/Confidential_Computing_Explained/tree/mini_kms/mini_kms/part_2)." 
+
+____________________________________________________________
+
+## Changes to the enclave code
+
+Before writing the Ecall function, we have to make some changes to the Makefile to link and compile our new files.
 
 
-
-### Changes to the enclave code
-Before writing the ecall function, we have to make slight changes to the Makefile that must taken into account. 
 ```Makefile
 # enclave/Makefile
 
@@ -433,7 +481,9 @@ keys:
 
 
 ```
+
 Next we can return to the `enclave.cpp` file and start writing our ecalls : 
+
 ```C++
 int get_report(uint8_t **pem_key, size_t *key_size, uint8_t **report, size_t *report_size){
     TRACE_ENCLAVE("Entering enclave.\n");
@@ -475,14 +525,19 @@ int get_evidence_with_pub_key(
 }
 ```
 
-And that's pretty much it for the ecalls. 
-Let's move on to the calling these functions from the host.
+And that's pretty much it for the Ecalls! Let's move on to calling these functions from the host.
 
-### Changes to the Host code
+____________________________________________________________
+
+## Changes to the Host code
+
+____________________________________________________________
 
 ## Verification client side with OE Host Verify Library
 
-The OpenEnclave community also works on verification library. the objective is to use the library to verify the remote reports outside the TEE/Enclave. This will be done in Next, we will be seeing how all of this works using the `oe_verify_remote_report` function that is at our disposal. 
+The Open Enclave community also works on verification library. The objective is to use the library to verify the remote reports outside the TEE/Enclave. This will be done in the next chapter, we will be seeing how all of this works using the `oe_verify_remote_report` function that is at our disposal. 
+
+***# IS THIS PARAGRAPH ON VERIFYING USEFUL?***
 
 
 <br />

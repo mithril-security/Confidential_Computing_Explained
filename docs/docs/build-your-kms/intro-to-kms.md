@@ -42,7 +42,7 @@ In our **mini-KMS** project, we will restrict the operations to make it easier f
 - Asymmetric key generation in RSA-2048
 - Key import
 
-To build them, we will be using the open-source C cryptographic library [**Mbedtls**](https://github.com/Mbed-TLS/mbedtls). It is both simple to use and already written for OpenEnclave. It's also small and implements well in embedded systems. Mbedtls does lack some features, but its advantages made up for it for the purposes of this tutorial.
+To build them, we will be using the open-source C cryptographic library [**Mbedtls**](https://github.com/Mbed-TLS/mbedtls). It is both simple to use and already written for Open Enclave. It's also small and implements well in embedded systems. Mbedtls does lack some features, but its advantages made up for it for the purposes of this tutorial.
 
 !!! Info
 
