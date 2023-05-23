@@ -63,7 +63,7 @@ int main(int argc, const char* argv[])
     int ret = 1;
     uint32_t flags = OE_ENCLAVE_FLAG_DEBUG;
     oe_enclave_t *enclave = NULL;
-    const char* server_port_untrusted = "9001";
+    char* server_port_untrusted = "8000";
     bool keep_server_up = false; 
     
     cout << "[Host]: entering main" << endl;

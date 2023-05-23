@@ -1,0 +1,68 @@
+
+enclave {
+    from "openenclave/edl/syscall.edl" import *;
+     from "openenclave/edl/logging.edl" import oe_write_ocall;
+    from "openenclave/edl/fcntl.edl" import *;
+    from "openenclave/edl/socket.edl" import *;
+    from "openenclave/edl/epoll.edl" import *;
+    from "platform.edl" import *;
+#ifdef EDL_USE_HOST_ENTROPY
+    from "openenclave/edl/sgx/entropy.edl" import *;
+#endif
+    from "openenclave/edl/attestation.edl" import *;
+
+    struct format_settings_t
+    {
+        [size=size] uint8_t* buffer;
+        size_t size;
+    };
+
+    struct pem_key_t
+    {
+        [size=size] uint8_t* buffer;
+        size_t size;
+    };
+
+    struct evidence_t
+    {
+        [size=size] uint8_t* buffer;
+        size_t size;
+    };
+
+    struct message_t
+    {
+        [size=size] uint8_t* data;
+        size_t size;
+    };
+
+
+
+    trusted {
+        // Untrusted port
+        public int set_up_server([in, string] const char* port, bool keep_server_up);
+        
+        // Extract the enclave's report and public key
+        public int get_report(
+            [out] uint8_t **pem_key,
+            [out] size_t *key_size, 
+            [out] uint8_t **report, 
+            [out] size_t *report_size
+        );
+
+        // Extract the enclave's evidence and public key
+        public int get_evidence(
+            [in] oe_uuid_t* format_id, 
+            [in] format_settings_t* format_settings,
+            [out] pem_key_t* pem_key, 
+            [out] evidence_t* evidence
+        );
+
+        // Trusted port 
+        public int set_up_trusted_server([in, string] const char* port);
+    };
+/*
+    untrusted {
+
+    };
+*/
+};

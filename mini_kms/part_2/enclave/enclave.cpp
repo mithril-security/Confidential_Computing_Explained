@@ -1,9 +1,9 @@
 
 
-// #include <openenclave/enclave.h>
-// #include <openenclave/attestation/attester.h>
-// #include <openenclave/attestation/sgx/evidence.h>
-// #include <openenclave/attestation/sgx/report.h>
+#include <openenclave/enclave.h>
+#include <openenclave/attestation/attester.h>
+#include <openenclave/attestation/sgx/evidence.h>
+#include <openenclave/attestation/sgx/report.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -20,12 +20,12 @@
 
 #include <sys/epoll.h>
 #include <fcntl.h>
-
-#include "../mongoose/mongoose.h"
-
-
-
 #include "kms_t.h"
+#include "../mongoose/mongoose.h"
+#include "../common/dispatcher.h"
+#include "../common/dispatcher.cpp"
+
+
 #include "trace.h"
 
 #include "generation/aes_genkey.cpp"
@@ -82,6 +82,10 @@ const char*  PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\n" \
 "goUDEg/BxfwEqsg7AOEMSTRxaOUXCSdOimumP0dD38C4zvO+imF9BzzGmMpstBst\n" \
 "5XSIkvovaR8nRBYBV/aF/kMyPQ==\n" \
 "-----END PRIVATE KEY-----";
+
+static dispatcher dispatcher("Enclave1");
+const char* enclave_name = "Enclave1";
+
 
 // Explicitly enabling features 
 
@@ -181,7 +185,13 @@ int set_up_server(const char* server_port_untrusted, bool keep_server_up )
         return -1;
     }
     TRACE_ENCLAVE("Modules loaded successfully.\n");
-    
+
+    // Ocall target info 
+    // TRACE_ENCLAVE("Target info request ocall.\n");
+    // sgx_target_info_t* target_info;
+    // oe_get_qetarget_info_ocall((oe_result_t*)target_info);
+    // TRACE_ENCLAVE("target info is : %s\n", target_info);
+
     char listening_addr[21];
     strncat(listening_addr,"https://0.0.0.0:", 16);
     strncat(listening_addr, server_port_untrusted, 4);
@@ -195,4 +205,51 @@ int set_up_server(const char* server_port_untrusted, bool keep_server_up )
     mg_mgr_free(&mgr);  
 
     return 1;
+}
+
+int set_up_trusted_server(const char* server_port_trusted )
+{
+    return 1;
+}
+
+
+int get_report(uint8_t **pem_key, size_t *key_size, uint8_t **report, size_t *report_size){
+    TRACE_ENCLAVE("Entering enclave.\n");
+    TRACE_ENCLAVE("Modules loading...\n");
+    if (load_oe_modules() != OE_OK)
+    {
+        printf("loading required Open Enclave modules failed\n");
+        return -1;
+    }
+    TRACE_ENCLAVE("Modules loaded successfully.\n");
+
+    
+    
+    TRACE_ENCLAVE("Calling sgx attester init.\n");
+    oe_result_t result = OE_OK;
+    result = oe_attester_initialize();
+    TRACE_ENCLAVE("Calling sgx plugin attester.\n");
+
+    TRACE_ENCLAVE("Calling get report via dispatcher\n");
+
+    return dispatcher.get_remote_report_with_pubkey(pem_key, key_size, report, report_size);
+}
+
+int get_evidence(oe_uuid_t* format_id, format_settings_t* format_settings, pem_key_t* pem_key, evidence_t* evidence){
+    TRACE_ENCLAVE("Entering enclave.\n");
+    // TRACE_ENCLAVE("Modules loading...\n");
+    // if (load_oe_modules() != OE_OK)
+    // {
+    //     printf("loading required Open Enclave modules failed\n");
+    //     return -1;
+    // }
+    // TRACE_ENCLAVE("Modules loaded successfully.\n");
+
+    TRACE_ENCLAVE("Calling sgx attester init.\n");
+    oe_result_t result = OE_OK;
+    result = oe_attester_initialize();
+    TRACE_ENCLAVE("Calling sgx plugin attester.\n");
+
+    TRACE_ENCLAVE("Calling get evidence via dispatcher\n");
+    return dispatcher.get_evidence_with_pubkey(format_id, format_settings, pem_key, evidence);
 }
