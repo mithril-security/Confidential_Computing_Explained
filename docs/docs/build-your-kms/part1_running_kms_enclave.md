@@ -689,6 +689,8 @@ void generate_rsa_keypair(unsigned char* public_key, unsigned char* private_key)
 
 #### Improvements
 
+***# ARE YOU DOING THAT SOON SOON OR DO WE JUST NOT KEEP THAT AT ALL?***
+
 !!! note "Coming soon"
     this paragraph is not yet implemented. 
 
@@ -700,4 +702,4 @@ Now that we've seen how to run an enclave and how to interact with, let's move o
 
 <br />
 <br />
-[Next :fontawesome-solid-forward-fast:](./part_2.md){ .md-button .md-button--primary }
+[Next :fontawesome-solid-forward-fast:](./part_2_remote_attestation.md){ .md-button .md-button--primary }
