@@ -14,22 +14,26 @@ ______________________
 
 ## What's a KMS?
 
-A **KMS** is a piece of software that performs **cryptographic operations** (such as encryption and managing private keys) and is usually **embedded inside a secure hardware** component or **hardware security** modules (also referred to as HSMs). 
+A **KMS** is a piece of software that performs **cryptographic operations** (such as encryption and managing private keys). It is usually **embedded inside a secure hardware** component or inside **hardware security** modules (also referred to as HSMs). 
 
-Because Trusted Execution Environements, or TEEs, are a secure environment, we can implement a working KMS inside an enclave. A remote client can benefit from having a remote key manager, without having to trust their keys directly.
+Because Trusted Execution Environments, or TEEs, are a secure environment, we can implement a working KMS inside an enclave. A remote client can benefit from having a remote key manager, without having to trust their keys directly.
 
 !!! warning "<font size="2">Don’t roll your own crypto!</font>"
 
-	<font size="3">This tutorial is mainly for educational purposes and the KMS implemented here **it is not fully compliant with the strict security protocols ensuring the security of keys and key management** needed to be used **in production**. It will serve more as an example, like implementing an encryption algorithm yourself to better understand it. As people always say in cryptography: “don’t roll your own crypto”!</font>
+	<font size="3">This tutorial is mainly for educational purposes and the KMS implemented here **is not fully compliant with the strict security protocols needed to ensure that the security levels of keys and key management** are high enough to be used **in production**. It will serve more as an example, like implementing an encryption algorithm yourself to better understand it. As people always say in cryptography: “don’t roll your own crypto”!</font>
 
 
 ______________________
 
 ## What does a KMS do? 
 
-It is common for companies to store sensitive data and need to protect it. For a running web application for instance, a particular attention must be given to passwords, credit card details or other data when storing them. Usually, these issues are resolved by encryption. But the key used must also be stored securely. Which means that the key must be encrypted by another key that protects it. however, we will always have a master key that we must securely store and it cannot be done simply by encrypting it. 
+It is common for companies to store sensitive data and need to protect it. 
 
-This where a KMS comes in handy. One of its features is to manage keys: it will import them, manage the users and the roles (etc.) in a secure and protected way completely isolated from the services that uses it! That is because KMS can perform multiple cryptographic operations. It can store private keys and certificates, perform encryption and key rotation... 
+For instance, let's take a running web application: a particular attention must be given to passwords and credit card details when storing them. Usually, these issues are resolved by encryption, but for the encryption to be secure... The key to decrypt must also be stored securely. That key must be encrypted by another key to protect it. 
+
+This key chain can quickly become quite complicated, but at the root of the concept, there is always going to be a master key that we must securely store and it cannot be done simply by encrypting it. 
+
+This where a KMS comes in handy. One of its features is to manage keys: it will import them, manage the users and the roles, etc. It will do so in a secure and protected way, completely isolated from the services that use it. That is because KMSs can perform multiple cryptographic operations. They can store private keys and certificates, perform encryption and key rotation... 
 
 ______________________________________
 

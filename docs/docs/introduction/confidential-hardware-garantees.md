@@ -1,11 +1,9 @@
 # 🔒 What is Confidential Computing?
 ___________________________________________________
 
-As you might have guessed from the previous chapter, there is an answer to those security issues and it is **Confidential Computing**! 
+As you might have guessed from the previous chapter, there is an answer to those security issues and it is **Confidential Computing**! Our tutorial’s star technology can analyze sensitive data **without ever exposing it in clear**. 
 
-Our tutorial’s star technology can analyze sensitive data **without ever exposing it in clear**. It does so by using **secure enclaves**.
-
-Secure enclaves, or **Trusted Execution Environments** (TEEs), are hardware-based secure environments. They are self-contained zones where the processor guarantees that the software running inside cannot be tampered with by the host operating system, hypervisor, and even its BIOS. The **memory isolation** provided by the hardware makes outside attempts to **read or modify fail**.
+It does so by using **secure enclaves**. Secure enclaves, or **Trusted Execution Environments** (TEEs), are hardware-based secure environments. They are self-contained zones where the processor guarantees that the software running inside cannot be tampered with by the host operating system, hypervisor, and even its BIOS. The **memory isolation** provided by the hardware makes outside attempts to **read or modify fail**.
 
 In the previous hospital scenario for instance, the AI startup could have put their model inside an enclave. This would have allowed the medical recordings to be analyzed by the startup without them being technically able to see the hospital’s data!
 
