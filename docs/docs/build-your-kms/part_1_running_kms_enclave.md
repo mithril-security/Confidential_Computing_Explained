@@ -30,13 +30,11 @@ $ cd mini_kms
 
 In the `mini_kms` directory, you'll find a `skeleton` directory, and other folders (`part_1`, `part_2`...) where each one correspond to a part of this Confidential Computing course. 
 
-!!! note "Fork"
-
-	You can also fork the repo into your projects to work on your own repo and maybe add all the features that you need. 
+You can also fork the repo into your projects, to work on your own files and maybe add all the features that you need. 
 
 !!! note "You already know all this?"
 
-	If you are already familiar with how to launch an enclave, use Open Enclave and want directly skip to the remote attestation in part 2, this is the moment! You can copy the folder onto another directory or work on it as is. 
+	If you are already familiar with how to launch an enclave, use Open Enclave and want directly [skip to the remote attestation](./part_2_remote_attestation.md) in part 2, this is the moment! You can copy the folder onto another directory or work on it as is. 
 
 ### Exploring the skeleton folder 
 
@@ -63,9 +61,10 @@ skeleton/
 
 ### The `enclave` folder
 
-The Makefile in the `enclave` folder specifies rules for **building an Enclave program** using the Open Enclave SDK (Software Development Kit), and **signing the program** using its **oesign** tool.
+The Makefile in the `enclave` folder specifies rules for **building an Enclave program** using the Open Enclave SDK (Software Development Kit), and **signing the program** using its **oesign** tool. 
 
-In the spirit of not wasting time on configuration not relevant to this tutorial (and avoiding torture), we will use a C embedded web server library called **Mongoose** to help us build the HTTPS server. We chose this library for it's simplicity and because it's works well with the crypto library we are using **Mbedtls** (**Mongoose** is also simple to use and well maintained). 
+In the spirit of not wasting time on configuration not relevant to this tutorial (and avoiding torture), we will use a C embedded web server library called **Mongoose** to help us build the HTTPS server. We chose this library because it is easy to use, well-maintained and because it works well with **Mbedtls**, the crypto library we'll be using. 
+
 To install it, run the following commands from the root of the skeleton folder: 
 
 ```bash
@@ -166,6 +165,8 @@ The Makefile defines the `CFLAGS`, `LDFLAGS`, and `INCDIR` variables to obtain c
 
 The `build` target does not build or sign the Enclave program. 
 
+The `kms_host` executable launches the Enclave and runs it. 
+
 ```makefile
 # miniKMS
 
@@ -188,16 +189,16 @@ clean:
 	rm -f kms_host host.o kms_u.o kms_u.c kms_u.h kms_args.h
 ```
 
-When run, the `kms_host` executable launches the Enclave and runs it. 
-
 Now that we know how our project will compile, let's start writing the Host code that will launch the Enclave and start the server via the Ecall. 
 
 ### Makefile commands 
-To run the enclave and the host, all you need to do is, 
 
-- Verify that all the libraries and name are correctly written on the makefiles. 
-- run `make all` to clean and build. 
-- run `make run` to run the host binary that will launch the enclave (or `make run simulate` for simulation mode).
+To run the enclave and the host, all you need to do is: 
+
+- Verify that all the libraries and name are correctly written on the Makefiles. 
+- Run `make all` to clean and build. 
+- Run `make run` to run the host binary that will launch the enclave.
+- OR `make run simulate` for simulation mode.
 
 ___________________________
 
