@@ -1,11 +1,13 @@
 # 🔒 What is Confidential Computing?
 ___________________________________________________
 
-As you might have guessed from the previous chapter, there is an answer to those security issues and it is **Confidential Computing**! Our tutorial’s star technology can analyze sensitive data **without ever exposing it in clear**. 
+As you might have guessed, there is an answer to the security issues mentioned in the last chapter: **Confidential Computing**! 
 
-It does so by using **secure enclaves**. Secure enclaves, or **Trusted Execution Environments** (TEEs), are hardware-based secure environments. They are self-contained zones where the processor guarantees that the software running inside cannot be tampered with by the host operating system, hypervisor, and even its BIOS. The **memory isolation** provided by the hardware makes outside attempts to **read or modify fail**.
+Our tutorial’s star technology can analyze sensitive data **without ever exposing it in clear**. It does so by using **Trusted Execution Environments** (TEEs), hardware-based secure environments also sometimes referred to as **secure enclaves**. 
 
-In the previous hospital scenario for instance, the AI startup could have put their model inside an enclave. This would have allowed the medical recordings to be analyzed by the startup without them being technically able to see the hospital’s data!
+They are self-contained zones where the processor guarantees that the software running inside cannot be tampered with by the host operating system, hypervisor, and even its BIOS. The **memory isolation** provided by the hardware makes outside attempts to **read or modify fail**.
+
+In the previous hospital scenario for instance, the AI startup could put their speech-to-text model inside an enclave. This would allow them to analyze the medical note recorded by the doctors, but without being able to technically see the hospital’s data!
 
 The full process of how data is protected will be explained later in the series, so don’t worry if you don’t understand the details yet!
 
