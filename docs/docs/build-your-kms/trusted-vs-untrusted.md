@@ -90,6 +90,8 @@ The enclave still needs to interact with the operating system once in a while (a
 - A call from the host to the enclave (called **Enclave Call**)
 - A call from the enclave to the host (called **Outside Call**)
 
+___________________________________
+
 Enough theory, let's get coding! 
 
 In the next chapter, we'll walk you through the definition and implementation of these calls.
