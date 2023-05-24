@@ -714,4 +714,4 @@ Now that we've seen **how to run an enclave** and **how to interact with it**, l
 
 <br />
 <br />
-[Next :fontawesome-solid-forward-fast:](./part_2_remote_attestation.md){ .md-button .md-button--primary }
+[Part 2 :fontawesome-solid-forward-fast:](./part_2_remote_attestation.md){ .md-button .md-button--primary }
