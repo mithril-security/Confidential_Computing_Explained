@@ -5,8 +5,8 @@ To build an SGX application for our minimal KMS, we will be using **Open Enclave
 
 We will walk you through how to set up everything you need to use it in both **simulation mode** and **hardware mode**. 
 
-- Simulation mode works on **any machine** but **does not have all the key security features**. For example, you won't be able to communicate remotely and secure the enclave. Simulation mode can be useful for running **tests** but is not intended for production. 
-- Hardware mode has **all the Intel SGX security features** but **requires specific Intel processors**. If you want to complete this tutorial in hardware mode, we **recommend** using a **DCvs3 Azure VM**.
+- **Simulation mode** works on **any machine** but **does not have all the key security features**. For example, you won't be able to communicate remotely and secure the enclave. Simulation mode can be useful for running **tests** but is not intended for production. 
+- **Hardware mode** has **all the Intel SGX security features** but **requires specific Intel processors**. If you want to complete this tutorial in hardware mode, we **recommend** using a **DCvs3 Azure VM**.
 
 ## Pre-requisites
 ______________________________
@@ -15,13 +15,15 @@ ______________________________
 
 	- We highly recommend a **Linux Ubuntu** distribution **18.04** or **20.04 LTS**.
 
-	For the simulation set-up mode, you can technically use any development environment, but we'll be using the Linux distribution in this course. If you use a different setup, the packages  might **not work** and the installation could be **different**. It might also work less well with OpenEnclaveSDK.
+		For the simulation set-up mode, you can technically use any development environment, but we'll be using the Linux distribution in this course. If you use a different setup, the packages might **not work** and the installation could be **different**. It might also work less well with Open Enclave SDK.
 
 	!!! warning
 
+		<font size="3">
 		Keep in mind that **key security features** behind confidential computing are **not available in simulation** mode!
 		
-		The simulation mode works in the same way as the hardware mode. The difference is that the **Intel instructions are simulated in software** rather than using hardware. This is why many security features are not available - since they are inseparable from the hardware. 
+		The simulation mode works in the same way as the hardware mode. The difference is that the **Intel instructions are simulated in software** rather than using hardware. This is why many security features are not available - since they are inseparable from the hardware.
+		</font>
 
 	When building our KMS project we will tell you at the beginning of each section if it is possible to follow along in simulation mode! 
 
@@ -41,10 +43,15 @@ ______________
 
 === "Simulation mode"
 
+	Open Enclave's installation is done in two steps in simulation mode:
+
+	- **Adding** the packages to the **trusted apt sources** list.
+	- **Installing** all the necessary **packages** and **dependencies**.
+
 	<h3>Adding APT sources</h3>
 	____________________________
 
-	To install the OpenEnclaveSDK packages and its dependencies, we'll first need to add the necessary repos to the **package manager APT**.
+	To install the Open Enclave SDK packages and its dependencies, we'll first need to add the necessary repos to the **package manager APT**.
 
 	Use the following commands to configure the Intel and Microsoft Azure APT repositories for downloading and installing Intel SGX and Open Enclave:
 
@@ -78,7 +85,7 @@ ______________
 
 	!!! abstract "Want to know more?"
 
-		To start exploring the OpenEnclaveSDK once you have it installed, you can go read this [README](https://github.com/openenclave/openenclave/blob/master/docs/GettingStartedDocs/Linux_using_oe_sdk.md)!
+		To start exploring the Open Enclave SDK once you have it installed, you can go read this [README](https://github.com/openenclave/openenclave/blob/master/docs/GettingStartedDocs/Linux_using_oe_sdk.md)!
 
 	To run Open Enclave tools directly from our shell without having path issues, we are going to add the following command:
 
@@ -140,7 +147,7 @@ ______________
 	Adding APT sources
 	</span></font>
 
-	To install the OpenEnclaveSDK packages and its dependencies, we'll first need to add the necessary repos to the **package manager APT**.
+	To install the Open Enclave SDK packages and its dependencies, we'll first need to add the necessary repos to the **package manager APT**.
 
 	Use the following commands to configure the Intel and Microsoft Azure APT repositories for downloading and installing Intel SGX and Open Enclave:
 
@@ -205,7 +212,7 @@ ______________
 
 	!!! abstract "Want to know more?"
 
-		To start exploring the OpenEnclaveSDK once you have it installed, you can go read this [README](https://github.com/openenclave/openenclave/blob/master/docs/GettingStartedDocs/Linux_using_oe_sdk.md)!
+		To start exploring the Open Enclave SDK once you have it installed, you can go read this [README](https://github.com/openenclave/openenclave/blob/master/docs/GettingStartedDocs/Linux_using_oe_sdk.md)!
 
 
 	To run Open Enclave tools directly from our shell without having path issues, we are going to add the following command:
