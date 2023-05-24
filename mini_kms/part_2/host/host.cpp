@@ -75,6 +75,7 @@ int get_enclave_evidence(
     evidence_t evidence = {0};
     pem_key_t pem_key = {0}; 
 
+
     printf("[Host]: Begining the attestation procedure.\n");
 
     printf("Host: Requesting %s format settings\n", enclave_name);
@@ -134,7 +135,7 @@ int main(int argc, const char* argv[])
     oe_uuid_t* format_id = nullptr; 
     format_settings_t format_settings = {0}; 
 
-    
+
     cout << "[Host]: entering main" << endl;
 
     cout << "[Host]: remote attestation initiation using ECDSA." << endl; 
@@ -174,6 +175,8 @@ int main(int argc, const char* argv[])
     }  
     
     printf("[Host]: The enclave's public key is :\n%s\n", pem_key);
+    printf("[Host]: report not parsed is :\n%s\n", &report);
+
     printf("[Host]: Parsing enclave report.\n");
     result = oe_parse_report(report, report_size, &parsed_report);
 
