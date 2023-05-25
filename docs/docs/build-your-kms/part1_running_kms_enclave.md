@@ -687,7 +687,7 @@ void generate_rsa_keypair(unsigned char* public_key, unsigned char* private_key)
 ```
 
 
-#### Improvements
+<!-- #### Improvements
 
 ***# ARE YOU DOING THAT SOON SOON OR DO WE JUST NOT KEEP THAT AT ALL?***
 
@@ -698,7 +698,7 @@ void generate_rsa_keypair(unsigned char* public_key, unsigned char* private_key)
 As done with the other functions, you can add as much as features as you want or need. 
 
 
-Now that we've seen how to run an enclave and how to interact with, let's move on to how to securely establish the connection, and implement a remote proof that we are using the right application on the right environment through remote attestation !
+Now that we've seen how to run an enclave and how to interact with, let's move on to how to securely establish the connection, and implement a remote proof that we are using the right application on the right environment through remote attestation ! -->
 
 <br />
 <br />
