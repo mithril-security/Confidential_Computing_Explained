@@ -15,7 +15,7 @@ It is the quote (partly) that verifies the integrity of the code inside the encl
 
 ### How does it work?
 
-In remote attestation, [as explained by the IETF team](https://ietf-rats-wg.github.io/architecture/draft-ietf-rats-architecture.html):
+In remote attestation, [as explained by the Internet Engineering Task Force (IETF) team](https://ietf-rats-wg.github.io/architecture/draft-ietf-rats-architecture.html):
 
 >*One peer (the "Attester") produces believable information about itself - Evidence - to enable a remote peer (the "Relying Party") to decide whether to consider that Attester a trustworthy peer or not. [Remote Attestation procedures] are facilitated by an additional vital party, the Verifier*.
 
@@ -41,6 +41,17 @@ The **Open Enclave** community tried to develop a way that's more friendly to th
 - `openenclave/attestation/attester.h`: provides functions to perform remote attestation and to verify attestation evidence. We will need this for generating the evidence.  
 - `openenclave/attestation/sgx/evidence.h`: defines structures and functions for attestation evidence, specifically for Intel SGX Enclaves.
 - `openenclave/attestation/sgx/report.h`: provides functions for generating reports that attest to the current state of an SGX Enclave. 
+
+### The implementation
+
+We will be implementing two different concepts to show the difference between two different possible implementations. 
+
+- **Generating the report** inside the enclave : The usual implementation for Intel SGX, is to generate the running enclave's report,  and sign it outside using the Quoting Enclave (Which is one of the architectural enclaves). This quote is then used to be verified by the third-party. 
+
+- **Generating an evidence**. As defined by the IETF:
+    >   Evidence is a set of Claims about the Target Environment that reveal operational status, health, configuration, or construction that have security relevance. 
+
+    In Open Enclave, we have the possibility to generate this evidence that is conform to the RFC standardization. A verifier can then take this evidence and compute it's results even if the format is different (it can be a JWT, X.509 certificate or other). 
 
 ____________________________________________________________
 
@@ -76,9 +87,7 @@ The evidence generation process begins by retrieving the necessary information f
 
 The first function is `oe_get_report`. It creates a report to be used in attestation. It's important to note that the call must be done **inside** the enclave as it is specific to the platform (and each enclave in that sense). 
 
-The second one is `oe_get_evidence`, to generate evidence.
-
-***# DID I REWRITE THIS RIGHT?***
+The second one is `oe_get_evidence`, to generate the evidence.
 
 ### Adding `ecall`s
 
@@ -144,15 +153,18 @@ enclave {
 }
 ```
 
-***# WHAT DO YOU MEAN WITH THE FOLLOWING PARAGRAPH? BIT CONFUSED BY WHAT YOU MEAN BY JUST COPIED AS IS. ISN'T EVERYTHING COPIED AS IS?***
+***# WHAT DO YOU MEAN WITH THE FOLLOWING PARAGRAPH? BIT CONFUSED BY WHAT YOU MEAN BY JUST COPIED AS IS. ISN'T EVERYTHING COPIED AS IS? [yass] It's the variable that is copied into a shared memeory I'm going to add some explanation ***
+If you remember correctly, when we first presented the trusted and untrusted sections ([here](./trusted-vs-untrusted-impl.md)), we talked about parameter boundary. But up until know we only talked about the `in` boundary. But the `in` boundary only copies the value of the pointer that has been given. To pass in a value that must be modified by the enclave we use the `out` boundary. 
+This Figure from the intel WhitePaper explains how it works more precisely :
+![Inbound and Outbound boundaries](../assets/outbound_inbound.png)
 
 In the `get_evidence_with_pub_key` function, `format_id` and `format_settings` are just copied as is. Those two variables represents the settings that will passed on to the enclave to generate the right evidence (such as the ECDSA-key generation format). 
 
-***# THOUGHT. I KNOW THIS IS VERY BASIC CRYPTO BUT SHOULD WE EXPLAIN ABOUT ECDSA-key OR ADD A WORD SOMEWHERE TO MAKE IT MORE CLEAR? OR MAYBE WHAT THE KEY WILL BE FOR?***
+***# THOUGHT. I KNOW THIS IS VERY BASIC CRYPTO BUT SHOULD WE EXPLAIN ABOUT ECDSA-key OR ADD A WORD SOMEWHERE TO MAKE IT MORE CLEAR? OR MAYBE WHAT THE KEY WILL BE FOR?[yass] I don't know haha, we can't explain everything at some point***
 
 This function adds the public key in PEM format and the report in the enclave and copies it in the four variables (hence the outbound `out`). 
 
-### Attestation structure
+### Remote Attestation and evidence generation structure
 
 To get the integrity and confidentiality information inside the enclave, we'll build the `Attestation` structure. It will allow us to add sequentially all the functions that we will be needing to gather them. 
 
@@ -176,7 +188,7 @@ The `crypto` class object provides functionality for encryption and hashing usin
 
 It is not the purpose of our tutorial to go over the details of this class object, so you can copy the files from the mini-KMS repo to yours.
 
-***# CAN YOU GIVE WHERE THEY ARE? OR GIVE A LINE OF CODE ON HOW TO GET IT DIRECTLY?***
+You can copy them from [here](https://github.com/mithril-security/Confidential_Computing_Explained/tree/main/mini_kms/part_2/common). 
 
 ??? note "More information about the crypto class object"
 
@@ -226,8 +238,6 @@ Attestation::Attestation(Crypto* crypto)
 {
     m_crypto = crypto;
 }
-
-
 ```
 
 Now, let's add an Attestation object. This **Attestation** object will implement functions for attestation: `generate_attestation_evidence` and `generate_report`.
@@ -236,11 +246,10 @@ Now, let's add an Attestation object. This **Attestation** object will implement
 
 The `generate_attestation_evidence` method will generate evidence for attestation, which is a cryptographic proof of the *integrity* and *authenticity* of an enclave. The function takes in several parameters including `format_id`, `format_settings`, `data`, and `data_size`. 
 
-1. It first hashes the input data using SHA256. 
-2. Then, it initializes the attester and plugin by calling `oe_attester_initialize()`. 
-3. Next, it generates custom claims for the attestation.
-4. It serializes the custom claims using `oe_serialize_custom_claims` and generates evidence based on the format selected by the attester using `oe_get_evidence`. 
-5. Finally, it cleans up and returns a boolean indicating whether the function succeeded or failed.
+
+ 
+ 
+
 
 ```C++
 bool Attestation::generate_attestation_evidence(
@@ -275,13 +284,14 @@ bool Attestation::generate_attestation_evidence(
         }
     };
 
+    // 1. It first hashes the input data using SHA256. 
     if (m_crypto->Sha256(data, data_size, hash) != 0)
     {
         TRACE_ENCLAVE("data hashing failed !\n");
         goto exit; 
     }
 
-    // The attester is initialized
+    // 2. Then, it initializes the attester and plugin by calling `oe_attester_initialize()`.
     result = oe_attester_initialize();
     if (result != OE_OK)
     {
@@ -289,10 +299,11 @@ bool Attestation::generate_attestation_evidence(
         goto exit; 
     }
 
-    // Adding the Public key's Hash computed 
+    // 3. Next, it generates custom claims for the attestation.
     custom_claims[1].value = hash;
     custom_claims[1].value_size = sizeof(hash);
 
+    // 4. It serializes the custom claims using `oe_serialize_custom_claims`.
     TRACE_ENCLAVE("Serializing the custom claims.\n");
     if (oe_serialize_custom_claims(
         custom_claims, 
@@ -308,7 +319,7 @@ bool Attestation::generate_attestation_evidence(
     TRACE_ENCLAVE(
     "serialized custom claims buffer size: %lu", custom_claims_buffer_size);
 
-    // Using the oe_get_evidence function to generate the evidence with the format chosen by the attester
+    // 5. Call to oe_get_evidence function to generate the evidence with the format chosen by the attester
     result = oe_get_evidence(
         format_id,
         0,
@@ -329,7 +340,7 @@ bool Attestation::generate_attestation_evidence(
     ret = true;
     TRACE_ENCLAVE("generate_attestation_evidence succeeded.");
 exit:
-    // Freeing memory and shutting down the attester
+    // 6. Finally, it cleans up and returns a boolean indicating whether the function succeeded or failed.
     oe_attester_shutdown();
     return ret;
 }  
@@ -340,11 +351,9 @@ exit:
 
 The `generate_report` method generates a remote report for the given data. The SHA256 digest of the data is stored in the `report_data` field of the generated remote report. 
 
-1. Firstly, it hashes the input data using SHA256, and then generates a remote report using `oe_get_report`. 
-2. It sets the `OE_REPORT_FLAGS_REMOTE_ATTESTATION` flag to generate a remote report that can be attested remotely by an enclave running on a different platform. 
-3. Finally, it cleans up and returns a boolean indicating whether the function succeeded or failed.
 
-***# THOUGHT: SHOULD WE PUT THOSE 1/2/3/4/5 STEPS AS COMMENTS INSIDE THE CODE? SAME IN THE PREVIOUS SECTION***
+
+
 
 ```c++
 bool Attestation::generate_report(
@@ -358,11 +367,14 @@ bool Attestation::generate_report(
     oe_result_t result = OE_OK;
     uint8_t* temp_buf = NULL;
 
+    // 1. Firstly, it hashes the input data using SHA256, and then generates a remote report using `oe_get_report`. 
     if (m_crypto->Sha256(data, data_size, sha256) != 0)
     {
         goto exit;
     }
 
+
+    // 2. It sets the `OE_REPORT_FLAGS_REMOTE_ATTESTATION` flag to generate a remote report that can be attested remotely by an enclave running on a different platform. 
     result = oe_get_report(
         OE_REPORT_FLAGS_REMOTE_ATTESTATION,
         sha256, // Store sha256 in report_data field
@@ -380,17 +392,20 @@ bool Attestation::generate_report(
     ret = true;
     TRACE_ENCLAVE("generate_remote_report succeeded.");
 exit:
+
+    // 3. Finally, it cleans up and returns a boolean indicating whether the function succeeded or failed.
     return ret;
 }
 ```
 
 ### The dispatcher
 
-***# THAT PART IS NOT VERY CLEAR. ALSO, SOME COMMENTS IN CODE COULD HELP***
-
 The `dispatcher` dispatches the `attestation` and `crypto` object to be called when our Ecalls will be defined. For each one of our Ecalls, we defined a method that sets up everything for the evidence generation and uses the `get_evidence` function method and a another function for `get_report` method:
 
 ```C++
+/**
+* Dispatcher class to be called from the enclave to run the ecalls. 
+*/
 class dispatcher
 {
   private:
@@ -400,14 +415,19 @@ class dispatcher
     string m_name;
 
   public:
+    // Constructor
     dispatcher(const char* name);
+    // Destructor
     ~dispatcher();
+
+    // call to last section's report function in attestation
     int get_remote_report_with_pubkey(
         uint8_t** pem_key,
         size_t* key_size,
         uint8_t** remote_report,
         size_t* remote_report_size);
 
+    // call to last section's evidence function in attestation
     int get_evidence_with_pubkey(
       const oe_uuid_t* format_id, 
       format_settings_t* format_settings, 
@@ -416,6 +436,7 @@ class dispatcher
     );
 
   private:
+    // Initializes a name for the enclave
     bool initialize(const char* name);
 };
 ```
@@ -531,6 +552,7 @@ ____________________________________________________________
 
 ## Changes to the Host code
 
+### The report and quote generation
 Let's first add the `get_report ecall` to the dispatcher from the host. 
 We first define the variables that we will be using, so let's add the following variables on the `main` function: 
 ```c++
@@ -589,6 +611,11 @@ The results we get are the following:
   "EnclaveHeldDataHex": "2D2D2D2D2D424547494E205055424C4943204B45592D2D2D2D2D0A4D494942496A414E42676B71686B6947397730424151454641414F43415138414D49494243674B43415145416A552B4C356147716B4F533932792F6B513062570A566631426637657044336F484530486A6A684A74325A627A49585A303245527243555946704857774749546F6B564C6A684C63525665364766775A776A6239680A7566474F584D6D71444F6557356752734856325137354C6E614338654B32364F62775755616A74456352594666353361563961697A745033574449737A796C750A49757059516875564F2B574936506F454E516446686A41424C7A6C787A79374369547A364452796137476155692F596E44564668414664435255324E613447410A79322B596B454A506550646F5441494E7054534C7954476E73346B7555717A375149726E6E3473426D44724C786635744534736447644B68596435525A5A68310A744B32634F3048534174656456574C48466F476571464A35697A62377436424A5546616C4E7A47466173516A36654F796F3050574654334F53766A3357596C4C0A32514944415141420A2D2D2D2D2D454E44205055424C4943204B45592D2D2D2D2D0A00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 }
 ```
+
+### Generating the evidence 
+
+The evidence, as defined by the Remote Attestation Procedures by the Internet Engineering Task Force (IETF) 
+
 __________________ __________________________________________
 
 ## Verification client side with OE Host Verify Library
