@@ -7,7 +7,7 @@ ___________________________________________________
 
 Welcome to our series of tutorials on **Confidential Computing**! 
 
-Our goal is to give **developpers** a better understanding of this amazing security technology. By the end of all the tutorials, you'll know how to **securely run an enclave**, **attest** it, **communicate** with it and **store** it.
+Our goal is to give **developers** a better understanding of this amazing security technology. By the end of all the tutorials, you'll know how to **securely run an enclave**, **attest** it, **communicate** with it and **store** it.
 
 We will start by explaining the current security challenges it can solve in the introduction. Then we'll move on to **practice** because we believe in **learning by coding**!
 

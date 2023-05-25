@@ -1,7 +1,7 @@
 # Installation
 ______________________________________________
 
-To build an SGX application for our minimal KMS, we will be using **OpenEnclave SDK**, which builds enclave applications using C and C++. 
+To build an SGX application for our minimal KMS, we will be using **Open Enclave SDK**, which builds enclave applications using C and C++. 
 
 We will walk you through how to set up everything you need to use it in both **simulation mode** and **hardware mode**. 
 
@@ -46,7 +46,7 @@ ______________
 
 	To install the OpenEnclaveSDK packages and its dependencies, we'll first need to add the necessary repos to the **package manager APT**.
 
-	Use the following commands to configure the Intel and Microsoft Azure APT repositories for downloading and installing Intel SGX and OpenEnclave:
+	Use the following commands to configure the Intel and Microsoft Azure APT repositories for downloading and installing Intel SGX and Open Enclave:
 
 	```bash
 	echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/intel-sgx.list
@@ -60,16 +60,16 @@ ______________
 	sudo apt update
 	```
 
-	<h3>Intel & OpenEnclave packages</h3>
+	<h3>Intel & Open Enclave packages</h3>
 	_____________________________________
 
-	Then, we'll install all the packages needed to simulate a running enclave with OpenEnclave. 
+	Then, we'll install all the packages needed to simulate a running enclave with Open Enclave. 
 
 	```bash
 	sudo apt -y install clang-11 libssl-dev gdb libsgx-enclave-common libsgx-quote-ex libprotobuf17 libsgx-dcap-ql libsgx-dcap-ql-dev az-dcap-client open-enclave
 	```
 
-	You should now see that OpenEnclave was installed in the folder `/opt/openenclave/`. 
+	You should now see that Open Enclave was installed in the folder `/opt/openenclave/`. 
 
 	```bash
 	$ ls /opt/openenclave
@@ -80,7 +80,7 @@ ______________
 
 		To start exploring the OpenEnclaveSDK once you have it installed, you can go read this [README](https://github.com/openenclave/openenclave/blob/master/docs/GettingStartedDocs/Linux_using_oe_sdk.md)!
 
-	To run OpenEnclave tools directly from our shell without having path issues, we are going to add the following command:
+	To run Open Enclave tools directly from our shell without having path issues, we are going to add the following command:
 
 	```bash
 	source /opt/openenclave/share/openenclave/openenclavec
@@ -126,10 +126,10 @@ ______________
 		+ If the command fails with an `in-kernel support` error, this means the drivers are already installed in `/dev/sgx/`. 
 
 
-	<h3>OpenEnclave SDK & Intel dependencies</h3>
+	<h3>Open Enclave SDK & Intel dependencies</h3>
 	_________________________________________
 
-	OpenEnclave's installation is done in three steps:
+	Open Enclave's installation is done in three steps:
 
 	- **Adding** the packages to the **trusted apt sources** list.
 	- **Installing** all the necessary **packages** and **dependencies**.
@@ -142,7 +142,7 @@ ______________
 
 	To install the OpenEnclaveSDK packages and its dependencies, we'll first need to add the necessary repos to the **package manager APT**.
 
-	Use the following commands to configure the Intel and Microsoft Azure APT repositories for downloading and installing Intel SGX and OpenEnclave:
+	Use the following commands to configure the Intel and Microsoft Azure APT repositories for downloading and installing Intel SGX and Open Enclave:
 
 	```bash
 	echo 'deb [arch=amd64] https://download.01.org/intel-sgx/sgx_repo/ubuntu focal main' | sudo tee /etc/apt/sources.list.d/intel-sgx.list
@@ -181,7 +181,7 @@ ______________
 
 	<br />
 	<font size="4"><span style="font-weight: 400">
-	Installing the Intel and OpenEnclave packages
+	Installing the Intel and Open Enclave packages
 	</span></font>
 
 	Here, we'll install all the packages that we need to perform the following tasks.  
@@ -196,7 +196,7 @@ ______________
 	sudo apt -y install clang-11 libssl-dev gdb libsgx-enclave-common libsgx-quote-ex libprotobuf17 libsgx-dcap-ql libsgx-dcap-ql-dev az-dcap-client open-enclave
 	```
 
-	You should now see that OpenEnclave was installed in the folder `/opt/openenclave/`.
+	You should now see that Open Enclave was installed in the folder `/opt/openenclave/`.
 
 	```bash
 	$ ls /opt/openenclave
@@ -208,7 +208,7 @@ ______________
 		To start exploring the OpenEnclaveSDK once you have it installed, you can go read this [README](https://github.com/openenclave/openenclave/blob/master/docs/GettingStartedDocs/Linux_using_oe_sdk.md)!
 
 
-	To run OpenEnclave tools directly from our shell without having path issues, we are going to add the following command:
+	To run Open Enclave tools directly from our shell without having path issues, we are going to add the following command:
 
 	```bash
 	source /opt/openenclave/share/openenclave/openenclavec

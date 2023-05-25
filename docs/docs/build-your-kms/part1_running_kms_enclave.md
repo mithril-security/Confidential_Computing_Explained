@@ -10,7 +10,7 @@ ___________________________________
 
 ## Makefiles and compilation logic 
 
-The structure of the code will be seperated in two.
+The structure of the code will be separated in two.
 
 - One part will be the code **running in the host** that will **launch the enclave**. 
 - One will be the code **running inside the enclave**. 
@@ -87,7 +87,7 @@ The `all` target depends on three other targets:
  + `keys` to **generate cryptographic keys**.
  + `sign` to **sign** the program using the keys. 
 
-To add `socket`, `network` and `syscall` support to the enclave, we must link rewritten libraries for OpenEnclave at compilation time. They are necessary to run the web server and communicate through it.  
+To add `socket`, `network` and `syscall` support to the enclave, we must link rewritten libraries for Open Enclave at compilation time. They are necessary to run the web server and communicate through it.  
 
 + `-loelibcxx` for C++ components
 + `-loehostsock` for socket support
@@ -380,7 +380,7 @@ $ touch aes_genkey.cpp rsa_genkey.cpp
 #include "generation/rsa_genkey.cpp"
 ```
 
-### Loading the OpenEnclave modules
+### Loading the Open Enclave modules
 
 While it is necessary to link the network components libraries at compilation time, we still need to load them. The function `load_oe_modules` serves that purpose by calling the loading function for each feature:
 
@@ -557,7 +557,7 @@ You should get a status json response.
 
 ### Functions implementation
 
-In **OpenEnclave**, the `oe_random()` function is used to generate random numbers. This function uses the RDRAND instruction, if available, to generate entropy from the processor's hardware random number generator (RNG). If the RDRAND instruction is not available, the function uses the operating system's random number generator. The `oe_random()` function is used to generate keys, nonces, and other random data in OpenEnclave.
+In **Open Enclave**, the `oe_random()` function is used to generate random numbers. This function uses the RDRAND instruction, if available, to generate entropy from the processor's hardware random number generator (RNG). If the RDRAND instruction is not available, the function uses the operating system's random number generator. The `oe_random()` function is used to generate keys, nonces, and other random data in Open Enclave.
 **Mbedtls** should normally calls to RDRAND instruction when calling to a random number generator. 
 
 #### AES generation key
@@ -687,7 +687,9 @@ void generate_rsa_keypair(unsigned char* public_key, unsigned char* private_key)
 ```
 
 
-#### Improvements
+<!-- #### Improvements
+
+***# ARE YOU DOING THAT SOON SOON OR DO WE JUST NOT KEEP THAT AT ALL?***
 
 !!! note "Coming soon"
     this paragraph is not yet implemented. 
@@ -696,8 +698,8 @@ void generate_rsa_keypair(unsigned char* public_key, unsigned char* private_key)
 As done with the other functions, you can add as much as features as you want or need. 
 
 
-Now that we've seen how to run an enclave and how to interact with, let's move on to how to securely establish the connection, and implement a remote proof that we are using the right application on the right environment through remote attestation !
+Now that we've seen how to run an enclave and how to interact with, let's move on to how to securely establish the connection, and implement a remote proof that we are using the right application on the right environment through remote attestation ! -->
 
 <br />
 <br />
-[Next :fontawesome-solid-forward-fast:](./part_2.md){ .md-button .md-button--primary }
+[Next :fontawesome-solid-forward-fast:](./part_2_remote_attestation.md){ .md-button .md-button--primary }

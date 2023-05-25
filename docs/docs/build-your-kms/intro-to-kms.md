@@ -8,13 +8,13 @@ We will do it using:
 - The **Open Enclave** Software Development Kit (SDK), which is a **C/C++ SDK** to build Confidential Computing apps. 
 - **Intel SGX** as the main secure enclave technology, because it is the most battle-tested solution.
 
-A relatively good knowledge in **C/C++ and cryptography** is recommended. We will be adding some reminders to make it more comfortable for you to read, but it might be a bit difficult to intake low-level coding langage, cryptography and confidential computing all at once. 
+A relatively good knowledge in **C/C++ and cryptography** is recommended. We will be adding some reminders to make it more comfortable for you to read, but it might be a bit difficult to intake low-level coding language, cryptography and confidential computing all at once. 
 
 ______________________
 
 ## What's a KMS?
 
-A **KMS** is a piece of software that performs **cryptographic operations** (such as encryption and managing private keys) and is usually **embedded inside a secure hardware** component or **hardware security** modules (also refered to as HSMs). 
+A **KMS** is a piece of software that performs **cryptographic operations** (such as encryption and managing private keys) and is usually **embedded inside a secure hardware** component or **hardware security** modules (also referred to as HSMs). 
 
 Because Trusted Execution Environements, or TEEs, are a secure environment, we can implement a working KMS inside an enclave. A remote client can benefit from having a remote key manager, without having to trust their keys directly.
 
@@ -42,7 +42,7 @@ In our **mini-KMS** project, we will restrict the operations to make it easier f
 - Asymmetric key generation in RSA-2048
 - Key import
 
-To build them, we will be using the open-source C cryptographic library [**Mbedtls**](https://github.com/Mbed-TLS/mbedtls). It is both simple to use and already written for OpenEnclave. It's also small and implements well in embedded systems. Mbedtls does lack some features, but its advantages made up for it for the purposes of this tutorial.
+To build them, we will be using the open-source C cryptographic library [**Mbedtls**](https://github.com/Mbed-TLS/mbedtls). It is both simple to use and already written for Open Enclave. It's also small and implements well in embedded systems. Mbedtls does lack some features, but its advantages made up for it for the purposes of this tutorial.
 
 !!! Info
 
