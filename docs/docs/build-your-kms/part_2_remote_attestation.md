@@ -154,7 +154,8 @@ enclave {
 ```
 
 ***# WHAT DO YOU MEAN WITH THE FOLLOWING PARAGRAPH? BIT CONFUSED BY WHAT YOU MEAN BY JUST COPIED AS IS. ISN'T EVERYTHING COPIED AS IS? [yass] It's the variable that is copied into a shared memeory I'm going to add some explanation ***
-If you remember correctly, when we first presented the trusted and untrusted sections ([here](./trusted-vs-untrusted-impl.md)), we talked about parameter boundary. But up until know we only talked about the `in` boundary. But the `in` boundary only copies the value of the pointer that has been given. To pass in a value that must be modified by the enclave we use the `out` boundary. 
+
+If we remember correctly, when we first presented the [trusted and untrusted sections](./trusted-vs-untrusted-impl.md), we talked about parameter boundary. But up until know we only talked about the `in` boundary. But the `in` boundary only copies the value of the pointer that has been given. To pass in a value that must be modified by the enclave we use the `out` boundary. 
 This Figure from the intel WhitePaper explains how it works more precisely :
 ![Inbound and Outbound boundaries](../assets/outbound_inbound.png)
 
@@ -280,14 +281,14 @@ bool Attestation::generate_attestation_evidence(
         }
     };
 
-    // 1. It first hashes the input data using SHA256. 
+    // 1. first hashing the input data using SHA256. 
     if (m_crypto->Sha256(data, data_size, hash) != 0)
     {
         TRACE_ENCLAVE("data hashing failed !\n");
         goto exit; 
     }
 
-    // 2. Then, it initializes the attester and plugin by calling `oe_attester_initialize()`.
+    // 2. Then, initialize the attester and plugin by calling `oe_attester_initialize()`.
     result = oe_attester_initialize();
     if (result != OE_OK)
     {
@@ -295,11 +296,11 @@ bool Attestation::generate_attestation_evidence(
         goto exit; 
     }
 
-    // 3. Next, it generates custom claims for the attestation.
+    // 3. Next, generates custom claims for the attestation.
     custom_claims[1].value = hash;
     custom_claims[1].value_size = sizeof(hash);
 
-    // 4. It serializes the custom claims using `oe_serialize_custom_claims`.
+    // 4. Serialize the custom claims using `oe_serialize_custom_claims`.
     TRACE_ENCLAVE("Serializing the custom claims.\n");
     if (oe_serialize_custom_claims(
         custom_claims, 
@@ -336,7 +337,7 @@ bool Attestation::generate_attestation_evidence(
     ret = true;
     TRACE_ENCLAVE("generate_attestation_evidence succeeded.");
 exit:
-    // 6. Finally, it cleans up and returns a boolean indicating whether the function succeeded or failed.
+    // 6. Finally, clean up and returns a boolean indicating whether the function succeeded or failed.
     oe_attester_shutdown();
     return ret;
 }  
@@ -653,7 +654,8 @@ int get_enclave_evidence(
 }
 ```
 
-Let's detail the parameters ppassed on to generate the evidence.
+Let's detail the parameters ppassed on to generate the evidence: 
+
 - `format_id`: defines the UUID of the attestation that we will be demanding. Open Enclave defines 4 different formats for `oe_get_evidence` ( `OE_FORMAT_UUID_SGX_LOCAL_ATTESTATION`, `OE_FORMAT_UUID_SGX_ECDSA` , `OE_FORMAT_UUID_SGX_EPID_LINKABLE`, `OE_FORMAT_UUID_SGX_EPID_UNLINKABLE`). And the one that interests us is the ECDSA one. So, in the main function we instantiate as `OE_FORMAT_UUID_SGX_ECDSA` see main function [in `host.cpp`](https://github.com/mithril-security/Confidential_Computing_Explained/blob/main/mini_kms/part_2/host/host.cpp). 
 - `format_settings`: is mostly used for additional information to the verifier and local attestation. But we won't be needing it so we initialize it at 0. 
 - `pem_key` and `evidence`: respectively the public key and evidence variables that will be changed. 
