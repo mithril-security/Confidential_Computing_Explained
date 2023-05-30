@@ -16,8 +16,8 @@ class QuoteGeneration {
     
     public: 
         //Constructor 
-        QuoteGeneration(oe_report_t parsedReport, uint8_t* ehd, 
-            size_t ehdSize, uint8_t* quote, size_t quoteSize    
+        QuoteGeneration(oe_report_t parsedReport, uint8_t* quote, size_t quoteSize, uint8_t* ehd, 
+            size_t ehdSize
         ); 
         //Destructor
         // ~QuoteGeneration();

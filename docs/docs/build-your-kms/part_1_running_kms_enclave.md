@@ -700,7 +700,7 @@ void generate_rsa_keypair(unsigned char* public_key, unsigned char* private_key)
 ```
 
 
-#### Improvements
+<!-- #### Improvements
 
 !!! note "Coming soon"
     This paragraph is not yet implemented. 
@@ -710,7 +710,7 @@ void generate_rsa_keypair(unsigned char* public_key, unsigned char* private_key)
 
 _________________________________________________
 
-Now that we've seen **how to run an enclave** and **how to interact with it**, let's see how to **securely establish the connection** and **implement a remote proof** that we are using the *right* application in the *right* environment!
+Now that we've seen **how to run an enclave** and **how to interact with it**, let's see how to **securely establish the connection** and **implement a remote proof** that we are using the *right* application in the *right* environment! -->
 
 <br />
 <br />

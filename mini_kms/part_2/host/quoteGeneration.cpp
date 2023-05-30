@@ -4,7 +4,7 @@
 #include "quoteGeneration.h"
 
 
-using json = nlohmann::json;
+// using json = nlohmann::json;
 
 QuoteGeneration::QuoteGeneration(oe_report_t parsedReport, uint8_t *quote, size_t quoteSize, uint8_t *ehd, size_t ehdSize)
 : _parsedReport(parsedReport),
