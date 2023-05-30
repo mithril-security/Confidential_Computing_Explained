@@ -34,7 +34,7 @@ You can also fork the repo into your projects, to work on your own files and may
 
 !!! note "You already know all this?"
 
-	If you are already familiar with how to launch an enclave, use Open Enclave and want directly [skip to the remote attestation](./part_2_remote_attestation.md) in part 2, this is the moment! You can copy the folder onto another directory or work on it as is. 
+	If you are already familiar with how to launch an enclave and want to use Open Enclave directly, [skip to the remote attestation](./part_2_remote_attestation.md) in part 2, this is the moment! You can copy the folder onto another directory or work on it as is. 
 
 ### Exploring the skeleton folder 
 
@@ -706,11 +706,11 @@ void generate_rsa_keypair(unsigned char* public_key, unsigned char* private_key)
     This paragraph is not yet implemented. 
 
 !!! note "Improvements"
-	As done with the other functions, you can add as much as features as you want or need. 
+	As done with the other functions, you can add as much as features as you want or need. -->
 
 _________________________________________________
 
-Now that we've seen **how to run an enclave** and **how to interact with it**, let's see how to **securely establish the connection** and **implement a remote proof** that we are using the *right* application in the *right* environment! -->
+Now that we've seen **how to run an enclave** and **how to interact with it**, let's see how to **securely establish the connection** and **implement a remote proof** that we are using the *right* application in the *right* environment!
 
 <br />
 <br />
