@@ -30,13 +30,11 @@ $ cd mini_kms
 
 In the `mini_kms` directory, you'll find a `skeleton` directory, and other folders (`part_1`, `part_2`...) where each one correspond to a part of this Confidential Computing course. 
 
-!!! note "Fork"
-
-	You can also fork the repo into your projects to work on your own repo and maybe add all the features that you need. 
+You can also fork the repo into your projects, to work on your own files and maybe add all the features that you need. 
 
 !!! note "You already know all this?"
 
-	If you are already familiar with how to launch an enclave, use Open Enclave and want directly skip to the remote attestation in part 2, this is the moment! You can copy the folder onto another directory or work on it as is. 
+	If you are already familiar with how to launch an enclave and want to use Open Enclave directly, [skip to the remote attestation](./part_2_remote_attestation.md) in part 2, this is the moment! You can copy the folder onto another directory or work on it as is. 
 
 ### Exploring the skeleton folder 
 
@@ -63,9 +61,10 @@ skeleton/
 
 ### The `enclave` folder
 
-The Makefile in the `enclave` folder specifies rules for **building an Enclave program** using the Open Enclave SDK (Software Development Kit), and **signing the program** using its **oesign** tool.
+The Makefile in the `enclave` folder specifies rules for **building an Enclave program** using the Open Enclave SDK (Software Development Kit), and **signing the program** using its **oesign** tool. 
 
-In the spirit of not wasting time on configuration not relevant to this tutorial (and avoiding torture), we will use a C embedded web server library called **Mongoose** to help us build the HTTPS server. We chose this library for it's simplicity and because it's works well with the crypto library we are using **Mbedtls** (**Mongoose** is also simple to use and well maintained). 
+In the spirit of not wasting time on configuration not relevant to this tutorial (and avoiding torture), we will use a C embedded web server library called **Mongoose** to help us build the HTTPS server. We chose this library because it is easy to use, well-maintained and because it works well with **Mbedtls**, the crypto library we'll be using. 
+
 To install it, run the following commands from the root of the skeleton folder: 
 
 ```bash
@@ -166,6 +165,8 @@ The Makefile defines the `CFLAGS`, `LDFLAGS`, and `INCDIR` variables to obtain c
 
 The `build` target does not build or sign the Enclave program. 
 
+The `kms_host` executable launches the Enclave and runs it. 
+
 ```makefile
 # miniKMS
 
@@ -188,16 +189,16 @@ clean:
 	rm -f kms_host host.o kms_u.o kms_u.c kms_u.h kms_args.h
 ```
 
-When run, the `kms_host` executable launches the Enclave and runs it. 
-
 Now that we know how our project will compile, let's start writing the Host code that will launch the Enclave and start the server via the Ecall. 
 
 ### Makefile commands 
-To run the enclave and the host, all you need to do is, 
 
-- Verify that all the libraries and name are correctly written on the makefiles. 
-- run `make all` to clean and build. 
-- run `make run` to run the host binary that will launch the enclave (or `make run simulate` for simulation mode).
+To run the enclave and the host, all you need to do is: 
+
+- Verify that all the libraries and name are correctly written on the Makefiles. 
+- Run `make all` to clean and build. 
+- Run `make run` to run the host binary that will launch the enclave.
+- OR `make run simulate` for simulation mode.
 
 ___________________________
 
@@ -421,23 +422,27 @@ exit:
 }
 ```
 
-### HTTPs server
+### HTTPS server
 
-- ***Generate a TLS certificate***: To use HTTPS, we first need to generate a TLS (Transport Layer Security) certificate. To generate a self-signed certificate and private key associated with, we use the following command with Openssl.
+To get started on the HTTPS server, we will need to generate a TLS certificate, handle incoming requests and configure the listening server.
+
+- ***Generate a TLS certificate***: To use HTTPS, we first need to generate a TLS (Transport Layer Security) certificate. 
+
+To generate a self-signed certificate and the private key associated with it, we use the following command with OpenSSL:
 
 ```bash 
 $ openssl req -new -x509 -key private.key -out certificate.crt -days 3650
 ```
-The `certificate` and `private_key` character pointers contain example values for an X.509 digital certificate and private key, respectively. These values are used as test data and should be replaced with appropriate values for a given use case.
 
-This will generate a self-signed certificate that is valid for 10 years (3650 days). However, self-signed certificates are not trusted by default, so we will need to manually install the certificate on any client that needs to communicate with the server over HTTPS.
+The `certificate` and `private_key` character pointers contain example values for an X.509 digital certificate and private key, respectively. These values are used as test data and should be replaced with the appropriate values.
+
+The OpenSSL command will generate a self-signed certificate that is valid for 10 years (3650 days). It is important to note, however, that, self-signed certificates are not trusted by default. So we will need to manually install the certificate on any client that needs to communicate with the server over HTTPS.
 
 One way to do so is declare the certificate and private key directly as a constant variable.
 
 !!! warning 
 
-    As it is an HTTPs server for testing purposes, the certificate and private key can be imported, or in our case, copied into variables.
-    In a production environment, ***the certificate and private key must be protected and stored securely***.
+    As it is an HTTPS server for teaching purposes, the certificate and private key can be imported or be copied into variables. In a production environment, **the certificate and the private key must be protected and stored securely**.
 
 ```C++
 // enclave.cpp
@@ -451,9 +456,10 @@ const char*  private_key = "-----BEGIN PRIVATE KEY-----\n" \
 "-----END PRIVATE KEY-----";
 ```
 
-- ***Handle incoming requests***: That goes by implementing a request handler that will be requested when the server is up and listening. 
+- ***Handle incoming requests***: We do this by implementing a request handler which will be requested when the server is up and listening. 
 
 Each request route (`/generate-aes-key`, `/generate-rsa-key-pair`...) performs a certain KMS operation: 
+
 ```C++
 // enclave.cpp
 static void api(struct mg_connection *c, int ev, void *ev_data, void *fn_data)
@@ -514,8 +520,10 @@ static void api(struct mg_connection *c, int ev, void *ev_data, void *fn_data)
 }
 ```
 
-- ***Configuring the listening server***: We achieve so by running the mongoose web server with the certificate and private key precedently defined. 
-Our web server also defines the Ecall that we will be calling to, hence the definition our Ecall: 
+- ***Configuring the listening server***: We'll run the Mongoose web server with the certificate and the private key we defined earlier. 
+
+Our web server also defines the Ecall that we will be calling to: 
+
 ```C++ 
 // enclave.cpp
 int set_up_server(const char* server_port_untrusted, bool keep_server_up )
@@ -545,6 +553,7 @@ int set_up_server(const char* server_port_untrusted, bool keep_server_up )
 ```
 
 Having all of this set up, we can go ahead and do some testing: 
+
 ```bash
 # to run the server and enclave
 $ make all && make run
@@ -553,17 +562,21 @@ $ make all && make run
 $ curl -k https://127.0.0.1:9000/
 
 ```
+
 You should get a status json response. 
 
 ### Functions implementation
 
 In **Open Enclave**, the `oe_random()` function is used to generate random numbers. This function uses the RDRAND instruction, if available, to generate entropy from the processor's hardware random number generator (RNG). If the RDRAND instruction is not available, the function uses the operating system's random number generator. The `oe_random()` function is used to generate keys, nonces, and other random data in Open Enclave.
+
 **Mbedtls** should normally calls to RDRAND instruction when calling to a random number generator. 
 
 #### AES generation key
+
 While generating an AES 256 bits key, a strong entropy source and seed the DRBG with sufficient entropy to ensure that the generated key must be used. This gives you the property of a cryptographically secure generated key.
 
 An example of code to generate a AES key is the following: 
+
 ```c++
 // enclave/generation/aes_genkey.cpp
 
@@ -689,17 +702,16 @@ void generate_rsa_keypair(unsigned char* public_key, unsigned char* private_key)
 
 <!-- #### Improvements
 
-***# ARE YOU DOING THAT SOON SOON OR DO WE JUST NOT KEEP THAT AT ALL?***
-
 !!! note "Coming soon"
-    this paragraph is not yet implemented. 
+    This paragraph is not yet implemented. 
 
 !!! note "Improvements"
-As done with the other functions, you can add as much as features as you want or need. 
+	As done with the other functions, you can add as much as features as you want or need. -->
 
+_________________________________________________
 
-Now that we've seen how to run an enclave and how to interact with, let's move on to how to securely establish the connection, and implement a remote proof that we are using the right application on the right environment through remote attestation ! -->
+Now that we've seen **how to run an enclave** and **how to interact with it**, let's see how to **securely establish the connection** and **implement a remote proof** that we are using the *right* application in the *right* environment!
 
 <br />
 <br />
-[Next :fontawesome-solid-forward-fast:](./part_2_remote_attestation.md){ .md-button .md-button--primary }
+[Part 2 :fontawesome-solid-forward-fast:](./part_2_remote_attestation.md){ .md-button .md-button--primary }

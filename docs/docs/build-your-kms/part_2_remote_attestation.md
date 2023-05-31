@@ -15,21 +15,21 @@ It is the quote (partly) that verifies the integrity of the code inside the encl
 
 ### How does it work?
 
-In remote attestation, [as explained by the Internet Engineering Task Force (IETF) team](https://ietf-rats-wg.github.io/architecture/draft-ietf-rats-architecture.html):
+In remote attestation, [as explained by the Internet Engineering Task Force (IETF) team](https://www.rfc-editor.org/rfc/rfc9334.pdf ):
 
 >*One peer (the "Attester") produces believable information about itself - Evidence - to enable a remote peer (the "Relying Party") to decide whether to consider that Attester a trustworthy peer or not. [Remote Attestation procedures] are facilitated by an additional vital party, the Verifier*.
 
-So, remote attestation is a security mechanism used to ensure the integrity of a computing system and its software components. It works by verifying that a system has not been compromised by checking its hardware and software configurations against a trusted set of measurements.
+To sum up, remote attestation is a security mechanism used to ensure the integrity of a computing system and its software components. It works by verifying that a system has not been compromised by checking its hardware and software configurations against a trusted set of measurements.
 
-The procedure for remote attestation typically involves three parties: the verifier, the attester, and the challenger. The verifier is the entity that wants to verify the integrity of the attester's system. The attester is the system being verified. The challenger is a trusted third party that provides the verifier with the necessary information to verify the attester's system.
+The procedure for remote attestation typically involves three parties: **the verifier, the attester,** and **the challenger**. **The verifier** is the entity that wants to verify the integrity of the attester's system. **The attester** is the system being verified. **The challenger** is a trusted third party that provides the verifier with the necessary information to verify the attester's system.
 
 The procedure works as follows: 
 
-1. The ***attester*** generates a ***set of measurements that describe its hardware and software configurations and sends them to the verifier***. 
-2. The ***verifier*** then compares ***these measurements against a trusted set of measurements provided by the challenger***.
+1. The **attester** generates a **set of measurements that describe its hardware and software configurations and sends them to the verifier**. 
+2. The **verifier** then compares **these measurements against a trusted set of measurements provided by the challenger**.
 3. **If the measurements match**, the **verifier** can be confident that the attester's **system has not been compromised**.
 
-Intel SGX's approach to remote attestation is the same but there are too many details to cover to explain it here. If you are interested, though, we wrote an in-depth article about it that you can find [here](https://blindai.mithrilsecurity.io/en/latest/docs/security/remote_attestation/). 
+Intel SGX's approach to remote attestation is the same but there are too many details to cover to explain it here. If you are interested to learn more, we wrote an in-depth article about it that you can find [here](https://blindai.mithrilsecurity.io/en/latest/docs/security/remote_attestation/). 
 
 Luckily, Open Enclave has tried to simplify this approach to make their solution more usable, so we don't need to understand all the subtleties to continue!
 
@@ -46,12 +46,13 @@ The **Open Enclave** community tried to develop a way that's more friendly to th
 
 We will be implementing two different concepts to show the difference between two different possible implementations. 
 
-- **Generating the report** inside the enclave : The usual implementation for Intel SGX, is to generate the running enclave's report,  and sign it outside using the Quoting Enclave (Which is one of the architectural enclaves). This quote is then used to be verified by the third-party. 
+- **Generating the report** inside the enclave. The usual implementation for Intel SGX, is to generate the running enclave's report, and sign it outside using the Quoting Enclave. (*Quoting Enclaves are part of the five ***architectural*** enclaves in charge of managing other enclaves by creating them, generating proofs, handling signatures and processor data...*) The signed quote is what the third-party will use to verify the validity of the enclave. 
 
-- **Generating an evidence**. As defined by the IETF:
-    >   Evidence is a set of Claims about the Target Environment that reveal operational status, health, configuration, or construction that have security relevance. 
+- **Generating an evidence**. As [defined by the IETF](https://www.rfc-editor.org/rfc/rfc9334.pdf):
 
-    In Open Enclave, we have the possibility to generate this evidence that is conform to the RFC standardization. A verifier can then take this evidence and compute it's results even if the format is different (it can be a JWT, X.509 certificate or other). 
+    > *Evidence is a set of Claims about the Target Environment that reveal operational status, health, configuration, or construction that have security relevance.* 
+
+    In Open Enclave, we have the possibility to generate this evidence that is conform to the IETF RFC document. A verifier can then take this evidence and compute it's results even if the format is different (it can be a JWT, X.509 certificate or other). 
 
 ____________________________________________________________
 
@@ -153,17 +154,20 @@ enclave {
 }
 ```
 
-***# WHAT DO YOU MEAN WITH THE FOLLOWING PARAGRAPH? BIT CONFUSED BY WHAT YOU MEAN BY JUST COPIED AS IS. ISN'T EVERYTHING COPIED AS IS? [yass] It's the variable that is copied into a shared memeory I'm going to add some explanation ***
+Before we continue, you might have noticed that we used two types of parameter boundaries, `[in]` and `[out]`, for the variables. 
 
-If we remember correctly, when we first presented the [trusted and untrusted sections](./trusted-vs-untrusted-impl.md), we talked about parameter boundary. But up until know we only talked about the `in` boundary. But the `in` boundary only copies the value of the pointer that has been given. To pass in a value that must be modified by the enclave we use the `out` boundary. 
-This Figure from the intel WhitePaper explains how it works more precisely :
+The difference between both is important to note: 
+
+- The `in` boundary only copies the value of the pointer that has been given.
+- The `out` boundary allows the enclave to modify the value that was passed, meaning it can also modify the pointer. 
+
+This figure from the Intel WhitePaper explains how it works more precisely :
+
 ![Inbound and Outbound boundaries](../assets/outbound_inbound.png)
 
-In the `get_evidence_with_pub_key` function, `format_id` and `format_settings` are just copied as is. Those two variables represents the settings that will passed on to the enclave to generate the right evidence (such as the ECDSA-key generation format). 
+In the `get_evidence_with_pub_key` function, `format_id` and `format_settings` are just copied as is (meaning you can only use the value). Those two variables represents the settings that will passed on to the enclave to generate the right evidence (such as the ECDSA-key standard generation format). 
 
-***# THOUGHT. I KNOW THIS IS VERY BASIC CRYPTO BUT SHOULD WE EXPLAIN ABOUT ECDSA-key OR ADD A WORD SOMEWHERE TO MAKE IT MORE CLEAR? OR MAYBE WHAT THE KEY WILL BE FOR?[yass] I don't know haha, we can't explain everything at some point***
-
-This function adds the public key in PEM format and the report in the enclave and copies it in the four variables (hence the outbound `out`). 
+This function adds the public key in PEM format and the report in the enclave and copies it in the four variables (hence the outbound `out`).
 
 ### Remote Attestation and evidence generation structure
 
@@ -446,7 +450,6 @@ ____________________________________________________________
 
 Before writing the Ecall function, we have to make some changes to the Makefile to link and compile our new files.
 
-
 ```Makefile
 # enclave/Makefile
 
@@ -497,7 +500,6 @@ keys:
 	openssl genrsa -out private.pem -3 3072
 	openssl rsa -in private.pem -pubout -out public.pem
 
-
 ```
 
 Next we can return to the `enclave.cpp` file and start writing our ecalls : 
@@ -547,11 +549,13 @@ And that's pretty much it for the Ecalls! Let's move on to calling these functio
 
 ____________________________________________________________
 
-## Changes to the Host code
+## Changes to the host code
 
 ### The report and quote generation
+
 Let's first add the `get_report ecall` to the dispatcher from the host. 
 We first define the variables that we will be using, so let's add the following variables on the `main` function: 
+
 ```c++
 // host.cpp
     uint8_t *pem_key = NULL;
@@ -561,7 +565,8 @@ We first define the variables that we will be using, so let's add the following 
     oe_report_t parsed_report = {0};
 ```
 
-next we can call to `get_report` after creating the enclave: 
+Next we can call to `get_report` after creating the enclave: 
+
 ```c++
     result = get_report(enclave, &ret, &pem_key, &key_size, &report, &report_size);
     if ((result != OE_OK) || (ret != 0))
@@ -573,12 +578,14 @@ next we can call to `get_report` after creating the enclave:
     }  
 ```
 
-At this stage, our report is not yet parse. To make it into a real report structure as defined by Intel, we are going to use `oe_parse_report` to do so. 
-But what we actually need is a Quote. As defined by Intel SGX, the quote, which will be used to verify the platform, is a signed report. Technically, this quote is generated by the Quoting Enclave (which is one of the five architectural enclaves), which possesses the keys to sign the report. This quote is then used by the verifier to be checked as a sure format and platform. 
+At this stage, our report is still in a raw format. We'll have to parse it so values are structured properly, according to the report structure defined by Intel. We'll use `oe_parse_report` to do so. 
+
+The name of that structure is a `quote`. Intel defines it as a **signed report**, that will be used to verify the platform. Technically, this `quote` is generated by the **Quoting Enclave** (which is one of the five **architectural** enclaves), which possesses the keys to sign the report. This `quote` is then used by the verifier to check that the format and the platform are correct. 
 
 We instantiate the `QuoteGeneration` object that parses the results in JSON (the code can be found at `mini_kms/part_2/host/quoteGeneration.cpp`). 
 
 We can complete the quote generation by add the following code to complete the quote generation: 
+
 ```c++
    printf("[Host]: Parsing enclave report.\n");
     result = oe_parse_report(report, report_size, &parsed_report);
@@ -657,7 +664,7 @@ int get_enclave_evidence(
 Let's detail the parameters ppassed on to generate the evidence: 
 
 - `format_id`: defines the UUID of the attestation that we will be demanding. Open Enclave defines 4 different formats for `oe_get_evidence` ( `OE_FORMAT_UUID_SGX_LOCAL_ATTESTATION`, `OE_FORMAT_UUID_SGX_ECDSA` , `OE_FORMAT_UUID_SGX_EPID_LINKABLE`, `OE_FORMAT_UUID_SGX_EPID_UNLINKABLE`). And the one that interests us is the ECDSA one. So, in the main function we instantiate as `OE_FORMAT_UUID_SGX_ECDSA` see main function [in `host.cpp`](https://github.com/mithril-security/Confidential_Computing_Explained/blob/main/mini_kms/part_2/host/host.cpp). 
-- `format_settings`: is mostly used for additional information to the verifier and local attestation. But we won't be needing it so we initialize it at 0. 
+- `format_settings`: is mostly used for additional information to the verifier and local attestation. But since it's meant for the local attestation, we won't be needing it so we initialize it at 0. 
 - `pem_key` and `evidence`: respectively the public key and evidence variables that will be changed. 
 
 Running this function on the `main` function of `host.cpp` will get the evidence. 
@@ -669,9 +676,10 @@ __________________ __________________________________________
 Now that we have the data needed to verify the enclave, we must send it to the third-party. To do so, we will be using our little web server that we've put in place in the last chapter. However we will still need to verify the attestation sent and establish a new connection, but this one secured with a certificate generated by the enclave. 
 
 In the next chapter, we will be seeing the following topics: 
-- sending the evidence to a client app.
-- verify the evidence client side.
-- establish a new TLS connection if the attestation is verified called Attested TLS.
+
+- Sending the evidence to a client application.
+- Verify the evidence client side.
+- `Attested TLS`, a new TLS connection that gets established if the attestation is verified.
 
 <br />
 <br />
