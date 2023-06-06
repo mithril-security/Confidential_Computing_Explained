@@ -1,6 +1,6 @@
 # 🔐 Confidential Computing Explained
 
-*This series of tutorials has a nice website: [https://confidential-computing-explained.mithrilsecurity.io/en/latest/](https://confidential-computing-explained.mithrilsecurity.io/en/latest/)*
+*This series of tutorials has a nice website: [https://www.mithrilsecurity.io/confidential-computing-explained/overview](https://www.mithrilsecurity.io/confidential-computing-explained/overview)*
 
 ## 🙌 A hands-on guide for beginners
 
